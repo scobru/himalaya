@@ -56,6 +56,18 @@ powershell -ExecutionPolicy Bypass -File build_windows.ps1 -Configuration Releas
 bash build_linux.sh
 ```
 
+### Pro Tools (AAX) Support
+
+Himalaya includes native support for Avid Pro Tools via the **AAX** format:
+1. **Compiling AAX**:
+   - Place the Avid AAX SDK in `aax-sdk/` or set the `JUCE_AAX_SDK_PATH` environment variable.
+   - CMake automatically enables the `Himalaya_AAX` target with `AAX_ePlugInCategory_Dynamics`.
+   - On macOS, builds `Himalaya.aaxplugin` (dest: `/Library/Application Support/Avid/Audio/Plug-Ins/`).
+   - On Windows, builds `Himalaya.aaxplugin` (dest: `C:\Program Files\Common Files\Avid\Audio\Plug-Ins\`).
+   - *Commercial Pro Tools*: Retail Pro Tools requires AAX binaries to be digitally signed using PACE Eden (`wraptool` with Avid developer certificate). For Pro Tools Developer Edition, unsigned binaries work out of the box.
+2. **Instant Pro Tools use via VST3 Wrapper**:
+   - To use Himalaya immediately in any retail Pro Tools version without needing PACE signing, load `Himalaya.vst3` through an AAX wrapper such as **Blue Cat's PatchWork** or **DDMF Metaplugin**.
+
 ### Building on Linux
 
 Tested on modern glibc-based distributions with `webkit2gtk-4.1` available.
