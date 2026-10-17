@@ -2,6 +2,8 @@
 
 A high-performance **zero-latency** brickwall limiter for broadcast, streaming, and music mastering with multiband processing and modern dark neon aesthetics. Built with JUCE 8 + WebView (Vite / React 19 / MUI). Ships as **VST3 / AU / AAX / Standalone** on Windows & macOS and **VST3 / LV2 / CLAP / Standalone** on Linux.
 
+> **Note**: This project is a fork of [ZeroLimit](https://github.com/Jun-Murakami/ZeroLimit) by [Jun Murakami](https://github.com/Jun-Murakami).
+
 Maintained by **scobru** — [https://github.com/scobru/himalaya](https://github.com/scobru/himalaya)
 
 ## Highlights
@@ -190,4 +192,4 @@ It uses [JUCE](https://juce.com/) under the AGPLv3 option of its dual-licensing 
 
 ## Credits
 
-Original DSP and concept by **Jun Murakami**. Rebranded and maintained by **scobru**. Built on **JUCE** with an embedded **WebView2 / WKWebView** frontend.
+Originally developed by [Jun Murakami](https://github.com/Jun-Murakami) as [ZeroLimit](https://github.com/Jun-Murakami/ZeroLimit). Rebranded, customized, and maintained by **scobru**. Built on **JUCE** with an embedded **WebView2 / WKWebView** frontend.
