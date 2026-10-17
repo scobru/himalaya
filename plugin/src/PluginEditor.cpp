@@ -8,8 +8,11 @@
 
 // CMake 未構成時（IntelliSense/分岐切替直後など、生成済み Version.h が include パスに無い状態）でも
 //  コンパイル・解析が通るようフォールバックを定義する。実ビルドでは Version.h の値が優先される。
+#ifndef HIMALAYA_VERSION_STRING
+ #define HIMALAYA_VERSION_STRING "0.0.0-dev"
+#endif
 #ifndef ZEROLIMIT_VERSION_STRING
- #define ZEROLIMIT_VERSION_STRING "0.0.0-dev"
+ #define ZEROLIMIT_VERSION_STRING HIMALAYA_VERSION_STRING
 #endif
 
 #include <unordered_map>
@@ -208,14 +211,14 @@ ZeroLimitAudioProcessorEditor::ZeroLimitAudioProcessorEditor(ZeroLimitAudioProce
               .withBackend(juce::WebBrowserComponent::Options::Backend::webview2)
               .withWinWebView2Options(
                   juce::WebBrowserComponent::Options::WinWebView2{}
-                      .withBackgroundColour(juce::Colour(0xFF606F77))
+                      .withBackgroundColour(juce::Colour(0xFF141721))
                       .withUserDataFolder(juce::File::getSpecialLocation(
                           juce::File::SpecialLocationType::tempDirectory)))
               .withWebViewLifetimeListener(&webViewLifetimeGuard)
               .withNativeIntegrationEnabled()
-              .withInitialisationData("vendor", "ZeroLimit")
-              .withInitialisationData("pluginName", "ZeroLimit")
-              .withInitialisationData("pluginVersion", ZEROLIMIT_VERSION_STRING)
+              .withInitialisationData("vendor", "scobru")
+              .withInitialisationData("pluginName", "Himalaya")
+              .withInitialisationData("pluginVersion", HIMALAYA_VERSION_STRING)
               .withOptionsFrom(controlParameterIndexReceiver)
               .withOptionsFrom(webThresholdRelay)
               .withOptionsFrom(webOutputGainRelay)

@@ -50,10 +50,10 @@ ZeroLimitAudioProcessor::ZeroLimitAudioProcessor()
     : AudioProcessor(BusesProperties()
                          .withInput ("Input",  juce::AudioChannelSet::stereo(), true)
                          .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
-      parameters(*this, nullptr, juce::Identifier("ZeroLimit"), createParameterLayout())
+      parameters(*this, nullptr, juce::Identifier("Himalaya"), createParameterLayout())
 {
     // WebView 起動診断ログ + Linux 描画/起動緩和策（エディタ生成より前に実行）
-    wvdiag::DiagnosticLog::install(ZEROLIMIT_PRODUCT_NAME, ZEROLIMIT_VERSION_STRING);
+    wvdiag::DiagnosticLog::install(HIMALAYA_PRODUCT_NAME, HIMALAYA_VERSION_STRING);
 }
 
 ZeroLimitAudioProcessor::~ZeroLimitAudioProcessor() = default;
@@ -439,7 +439,7 @@ void ZeroLimitAudioProcessor::setStateInformation(const void* data, int sizeInBy
 {
     if (auto xml = getXmlFromBinary(data, sizeInBytes))
     {
-        if (xml->hasTagName(parameters.state.getType()))
+        if (xml->hasTagName(parameters.state.getType()) || xml->hasTagName("ZeroLimit"))
             parameters.replaceState(juce::ValueTree::fromXml(*xml));
     }
 }

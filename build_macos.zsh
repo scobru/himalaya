@@ -1,16 +1,16 @@
-#!/bin/zsh
+﻿#!/bin/zsh
 
-# ZeroLimit macOS Release Build Script (zsh)
-# - WebUI のビルド → JUCE (Xcode) で VST3/AU/Standalone をビルド
-# - コード署名（Hardened Runtime）→ Notary Tool でノータライズ → ステープル
-# - Windows 用スクリプト(build_windows_release.ps1)の体裁に合わせて段階表示・要約を出力
+# Himalaya macOS Release Build Script (zsh)
+# - WebUI ã®ãƒ“ãƒ«ãƒ‰ â†’ JUCE (Xcode) ã§ VST3/AU/Standalone ã‚’ãƒ“ãƒ«ãƒ‰
+# - ã‚³ãƒ¼ãƒ‰ç½²åï¼ˆHardened Runtimeï¼‰â†’ Notary Tool ã§ãƒŽãƒ¼ã‚¿ãƒ©ã‚¤ã‚º â†’ ã‚¹ãƒ†ãƒ¼ãƒ—ãƒ«
+# - Windows ç”¨ã‚¹ã‚¯ãƒªãƒ—ãƒˆ(build_windows_release.ps1)ã®ä½“è£ã«åˆã‚ã›ã¦æ®µéšŽè¡¨ç¤ºãƒ»è¦ç´„ã‚’å‡ºåŠ›
 
 set -e
 set -u
 set -o pipefail
 
 #============================================
-#  出力用の装飾関数（PowerShell版に近い体裁）
+#  å‡ºåŠ›ç”¨ã®è£…é£¾é–¢æ•°ï¼ˆPowerShellç‰ˆã«è¿‘ã„ä½“è£ï¼‰
 #============================================
 color_cyan="\033[36m"
 color_yellow="\033[33m"
@@ -28,39 +28,39 @@ echo_header() {
 }
 
 echo_step() {
-    echo -e "${color_yellow}► $1${color_reset}"
+    echo -e "${color_yellow}â–º $1${color_reset}"
 }
 
 echo_success() {
-    echo -e "${color_green}✓ $1${color_reset}"
+    echo -e "${color_green}âœ“ $1${color_reset}"
 }
 
 echo_error() {
-    echo -e "${color_red}✗ $1${color_reset}" 1>&2
+    echo -e "${color_red}âœ— $1${color_reset}" 1>&2
 }
 
 #============================================
-#  設定と前提
+#  è¨­å®šã¨å‰æ
 #============================================
-# - バージョンはリポジトリ直下の VERSION から取得
-# - 署名には Developer ID Application 証明書が必要
-# - ノータライズには notarytool の資格情報が必要
-#   (優先1) App Store Connect API キー: APPLE_API_KEY_PATH / APPLE_API_KEY_ID(/APPLE_API_KEY) / APPLE_API_ISSUER
-#           例) xcrun notarytool submit ... --key "$APPLE_API_KEY_PATH" --key-id "$APPLE_API_KEY_ID" --issuer "$APPLE_API_ISSUER" --wait
-#   (優先2) Keychain プロファイル: NOTARYTOOL_PROFILE
-#   (優先3) Apple ID 直指定: APPLE_ID / APP_PASSWORD / TEAM_ID
+# - ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã¯ãƒªãƒã‚¸ãƒˆãƒªç›´ä¸‹ã® VERSION ã‹ã‚‰å–å¾—
+# - ç½²åã«ã¯ Developer ID Application è¨¼æ˜Žæ›¸ãŒå¿…è¦
+# - ãƒŽãƒ¼ã‚¿ãƒ©ã‚¤ã‚ºã«ã¯ notarytool ã®è³‡æ ¼æƒ…å ±ãŒå¿…è¦
+#   (å„ªå…ˆ1) App Store Connect API ã‚­ãƒ¼: APPLE_API_KEY_PATH / APPLE_API_KEY_ID(/APPLE_API_KEY) / APPLE_API_ISSUER
+#           ä¾‹) xcrun notarytool submit ... --key "$APPLE_API_KEY_PATH" --key-id "$APPLE_API_KEY_ID" --issuer "$APPLE_API_ISSUER" --wait
+#   (å„ªå…ˆ2) Keychain ãƒ—ãƒ­ãƒ•ã‚¡ã‚¤ãƒ«: NOTARYTOOL_PROFILE
+#   (å„ªå…ˆ3) Apple ID ç›´æŒ‡å®š: APPLE_ID / APP_PASSWORD / TEAM_ID
 #
-# 必須環境変数:
-#   CODESIGN_IDENTITY : 例) "Developer ID Application: Your Name (TEAMID)"
-#   どれか一つ:
+# å¿…é ˆç’°å¢ƒå¤‰æ•°:
+#   CODESIGN_IDENTITY : ä¾‹) "Developer ID Application: Your Name (TEAMID)"
+#   ã©ã‚Œã‹ä¸€ã¤:
 #     (A) APPLE_API_KEY_PATH / APPLE_API_KEY_ID(/APPLE_API_KEY) / APPLE_API_ISSUER
 #     (B) NOTARYTOOL_PROFILE
 #     (C) APPLE_ID / APP_PASSWORD / TEAM_ID
 #
-# 任意環境変数:
-#   ENTITLEMENTS_PATH : 付与する entitlements の .plist パス
-#   CODESIGN_DEEP     : "1" で --deep を付与
-#   SKIP_WEBUI        : "1" で WebUI ビルドをスキップ
+# ä»»æ„ç’°å¢ƒå¤‰æ•°:
+#   ENTITLEMENTS_PATH : ä»˜ä¸Žã™ã‚‹ entitlements ã® .plist ãƒ‘ã‚¹
+#   CODESIGN_DEEP     : "1" ã§ --deep ã‚’ä»˜ä¸Ž
+#   SKIP_WEBUI        : "1" ã§ WebUI ãƒ“ãƒ«ãƒ‰ã‚’ã‚¹ã‚­ãƒƒãƒ—
 
 CONFIGURATION="Release"
 
@@ -98,7 +98,7 @@ ENV_FILE="${ROOT_DIR}/.env"
 if [[ -f "${ENV_FILE}" ]]; then
     echo -e "${color_gray}Loading environment variables from .env ...${color_reset}"
     while IFS= read -r line || [[ -n "$line" ]]; do
-        line="${line%$'\r'}"       # strip trailing CR (CRLF .env で値末尾に \r が混入し PACE 認証等が壊れるのを防ぐ)
+        line="${line%$'\r'}"       # strip trailing CR (CRLF .env ã§å€¤æœ«å°¾ã« \r ãŒæ··å…¥ã— PACE èªè¨¼ç­‰ãŒå£Šã‚Œã‚‹ã®ã‚’é˜²ã)
         line="${line## }"          # trim leading
         line="${line%% }"          # trim trailing
         [[ -z "$line" || "$line" == \#* ]] && continue
@@ -112,9 +112,9 @@ if [[ -f "${ENV_FILE}" ]]; then
     done < "${ENV_FILE}"
 fi
 
-echo_header "ZeroLimit ${VERSION} Build Script (macOS zsh)"
+echo_header "Himalaya ${VERSION} Build Script (macOS zsh)"
 
-# ディレクトリ設定
+# ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªè¨­å®š
 WEBUI_DIR="${ROOT_DIR}/webui"
 BUILD_DIR="${ROOT_DIR}/build"
 OUTPUT_DIR="${ROOT_DIR}/releases/${VERSION}/macOS"
@@ -185,7 +185,7 @@ mkdir -p "${OUTPUT_DIR}"
 echo_success "Output directories created"
 
 #============================================
-# Step 1: WebUI を本番ビルド
+# Step 1: WebUI ã‚’æœ¬ç•ªãƒ“ãƒ«ãƒ‰
 #============================================
 echo_header "Step 1: Building WebUI for production"
 
@@ -227,7 +227,7 @@ fi
 echo -e "${color_gray}Output: ${ROOT_DIR}/plugin/ui/public${color_reset}"
 
 #============================================
-# Step 2: CMake (Xcode) で VST3/AU/Standalone (+ AAX) をビルド
+# Step 2: CMake (Xcode) ã§ VST3/AU/Standalone (+ AAX) ã‚’ãƒ“ãƒ«ãƒ‰
 #============================================
 if [[ ${BUILD_AAX} -eq 1 ]]; then
     echo_header "Step 2: Building Plugins (VST3/AU/Standalone/CLAP/AAX)"
@@ -236,7 +236,7 @@ else
 fi
 
 # Clean existing artifacts (detect permission issues early)
-EXISTING_ARTIFACTS_DIR="${BUILD_DIR}/plugin/ZeroLimit_artefacts/${CONFIGURATION}"
+EXISTING_ARTIFACTS_DIR="${BUILD_DIR}/plugin/Himalaya_artefacts/${CONFIGURATION}"
 if [[ -d "${EXISTING_ARTIFACTS_DIR}" ]]; then
     echo_step "Removing existing plugin artifacts..."
     if rm -rf "${EXISTING_ARTIFACTS_DIR}"; then
@@ -256,42 +256,42 @@ cmake -S "${ROOT_DIR}" -B "${BUILD_DIR}" \
 
 echo_step "Executing build..."
 if [[ ${BUILD_AAX} -eq 1 ]]; then
-    cmake --build "${BUILD_DIR}" --config "${CONFIGURATION}" --target ZeroLimit_VST3 ZeroLimit_AU ZeroLimit_Standalone ZeroLimit_CLAP ZeroLimit_AAX
+    cmake --build "${BUILD_DIR}" --config "${CONFIGURATION}" --target Himalaya_VST3 Himalaya_AU Himalaya_Standalone Himalaya_CLAP Himalaya_AAX
 else
-    cmake --build "${BUILD_DIR}" --config "${CONFIGURATION}" --target ZeroLimit_VST3 ZeroLimit_AU ZeroLimit_Standalone ZeroLimit_CLAP
+    cmake --build "${BUILD_DIR}" --config "${CONFIGURATION}" --target Himalaya_VST3 Himalaya_AU Himalaya_Standalone Himalaya_CLAP
 fi
 echo_success "Plugin build completed"
 
 # Artifact paths
-ARTIFACTS_DIR="${BUILD_DIR}/plugin/ZeroLimit_artefacts/${CONFIGURATION}"
+ARTIFACTS_DIR="${BUILD_DIR}/plugin/Himalaya_artefacts/${CONFIGURATION}"
 
 # Verify Universal Binary
 echo_step "Checking architecture of built plugins..."
-if [[ -f "${ARTIFACTS_DIR}/VST3/ZeroLimit.vst3/Contents/MacOS/ZeroLimit" ]]; then
+if [[ -f "${ARTIFACTS_DIR}/VST3/Himalaya.vst3/Contents/MacOS/Himalaya" ]]; then
     echo "  VST3:"
-    lipo -info "${ARTIFACTS_DIR}/VST3/ZeroLimit.vst3/Contents/MacOS/ZeroLimit"
+    lipo -info "${ARTIFACTS_DIR}/VST3/Himalaya.vst3/Contents/MacOS/Himalaya"
 fi
-if [[ -f "${ARTIFACTS_DIR}/AU/ZeroLimit.component/Contents/MacOS/ZeroLimit" ]]; then
+if [[ -f "${ARTIFACTS_DIR}/AU/Himalaya.component/Contents/MacOS/Himalaya" ]]; then
     echo "  AU:"
-    lipo -info "${ARTIFACTS_DIR}/AU/ZeroLimit.component/Contents/MacOS/ZeroLimit"
+    lipo -info "${ARTIFACTS_DIR}/AU/Himalaya.component/Contents/MacOS/Himalaya"
 fi
-if [[ -f "${ARTIFACTS_DIR}/Standalone/ZeroLimit.app/Contents/MacOS/ZeroLimit" ]]; then
+if [[ -f "${ARTIFACTS_DIR}/Standalone/Himalaya.app/Contents/MacOS/Himalaya" ]]; then
     echo "  Standalone:"
-    lipo -info "${ARTIFACTS_DIR}/Standalone/ZeroLimit.app/Contents/MacOS/ZeroLimit"
+    lipo -info "${ARTIFACTS_DIR}/Standalone/Himalaya.app/Contents/MacOS/Himalaya"
 fi
-if [[ -f "${ARTIFACTS_DIR}/CLAP/ZeroLimit.clap/Contents/MacOS/ZeroLimit" ]]; then
+if [[ -f "${ARTIFACTS_DIR}/CLAP/Himalaya.clap/Contents/MacOS/Himalaya" ]]; then
     echo "  CLAP:"
-    lipo -info "${ARTIFACTS_DIR}/CLAP/ZeroLimit.clap/Contents/MacOS/ZeroLimit"
+    lipo -info "${ARTIFACTS_DIR}/CLAP/Himalaya.clap/Contents/MacOS/Himalaya"
 fi
-if [[ ${BUILD_AAX} -eq 1 ]] && [[ -f "${ARTIFACTS_DIR}/AAX/ZeroLimit.aaxplugin/Contents/MacOS/ZeroLimit" ]]; then
+if [[ ${BUILD_AAX} -eq 1 ]] && [[ -f "${ARTIFACTS_DIR}/AAX/Himalaya.aaxplugin/Contents/MacOS/Himalaya" ]]; then
     echo "  AAX:"
-    lipo -info "${ARTIFACTS_DIR}/AAX/ZeroLimit.aaxplugin/Contents/MacOS/ZeroLimit"
+    lipo -info "${ARTIFACTS_DIR}/AAX/Himalaya.aaxplugin/Contents/MacOS/Himalaya"
 fi
 echo_success "Architecture verification completed"
-SRC_VST3="${ARTIFACTS_DIR}/VST3/ZeroLimit.vst3"
-SRC_AU="${ARTIFACTS_DIR}/AU/ZeroLimit.component"
-SRC_APP="${ARTIFACTS_DIR}/Standalone/ZeroLimit.app"
-SRC_CLAP="${ARTIFACTS_DIR}/CLAP/ZeroLimit.clap"
+SRC_VST3="${ARTIFACTS_DIR}/VST3/Himalaya.vst3"
+SRC_AU="${ARTIFACTS_DIR}/AU/Himalaya.component"
+SRC_APP="${ARTIFACTS_DIR}/Standalone/Himalaya.app"
+SRC_CLAP="${ARTIFACTS_DIR}/CLAP/Himalaya.clap"
 
 if [[ ! -d "${SRC_VST3}" ]]; then echo_error "VST3 not found: ${SRC_VST3}"; exit 1; fi
 if [[ ! -d "${SRC_AU}" ]]; then echo_error "AU not found: ${SRC_AU}"; exit 1; fi
@@ -300,15 +300,15 @@ if [[ ! -d "${SRC_CLAP}" ]]; then echo_error "CLAP not found: ${SRC_CLAP}"; exit
 
 # AAX check
 if [[ ${BUILD_AAX} -eq 1 ]]; then
-    SRC_AAX="${ARTIFACTS_DIR}/AAX/ZeroLimit.aaxplugin"
+    SRC_AAX="${ARTIFACTS_DIR}/AAX/Himalaya.aaxplugin"
     if [[ ! -d "${SRC_AAX}" ]]; then echo_error "AAX not found: ${SRC_AAX}"; exit 1; fi
 fi
 
 echo_step "Collecting artifacts..."
-DEST_VST3="${OUTPUT_DIR}/ZeroLimit.vst3"
-DEST_AU="${OUTPUT_DIR}/ZeroLimit.component"
-DEST_APP="${OUTPUT_DIR}/ZeroLimit.app"
-DEST_CLAP="${OUTPUT_DIR}/ZeroLimit.clap"
+DEST_VST3="${OUTPUT_DIR}/Himalaya.vst3"
+DEST_AU="${OUTPUT_DIR}/Himalaya.component"
+DEST_APP="${OUTPUT_DIR}/Himalaya.app"
+DEST_CLAP="${OUTPUT_DIR}/Himalaya.clap"
 
 rm -rf "${DEST_VST3}" "${DEST_AU}" "${DEST_APP}" "${DEST_CLAP}"
 cp -R "${SRC_VST3}" "${DEST_VST3}"
@@ -317,7 +317,7 @@ cp -R "${SRC_APP}" "${DEST_APP}"
 cp -R "${SRC_CLAP}" "${DEST_CLAP}"
 
 if [[ ${BUILD_AAX} -eq 1 ]]; then
-    DEST_AAX="${OUTPUT_DIR}/ZeroLimit.aaxplugin"
+    DEST_AAX="${OUTPUT_DIR}/Himalaya.aaxplugin"
     rm -rf "${DEST_AAX}"
     cp -R "${SRC_AAX}" "${DEST_AAX}"
 fi
@@ -325,11 +325,11 @@ fi
 echo_success "Artifacts copied successfully"
 
 #============================================
-# Step 2.5: 各フォーマットの CFBundleIdentifier を一意化
-#   JUCE は BUNDLE_ID を VST3/AU/Standalone/AAX すべてに同一適用するため、
-#   pkg 内のバンドル ID が衝突し、macOS インストーラで「コンポーネントを 1 つ
-#   しかオフにできない／2 つ目を外すと別が復活する」不具合が起きる。
-#   コード署名は Info.plist をシールするので、必ず署名前に書き換える。
+# Step 2.5: å„ãƒ•ã‚©ãƒ¼ãƒžãƒƒãƒˆã® CFBundleIdentifier ã‚’ä¸€æ„åŒ–
+#   JUCE ã¯ BUNDLE_ID ã‚’ VST3/AU/Standalone/AAX ã™ã¹ã¦ã«åŒä¸€é©ç”¨ã™ã‚‹ãŸã‚ã€
+#   pkg å†…ã®ãƒãƒ³ãƒ‰ãƒ« ID ãŒè¡çªã—ã€macOS ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ©ã§ã€Œã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’ 1 ã¤
+#   ã—ã‹ã‚ªãƒ•ã«ã§ããªã„ï¼2 ã¤ç›®ã‚’å¤–ã™ã¨åˆ¥ãŒå¾©æ´»ã™ã‚‹ã€ä¸å…·åˆãŒèµ·ãã‚‹ã€‚
+#   ã‚³ãƒ¼ãƒ‰ç½²åã¯ Info.plist ã‚’ã‚·ãƒ¼ãƒ«ã™ã‚‹ã®ã§ã€å¿…ãšç½²åå‰ã«æ›¸ãæ›ãˆã‚‹ã€‚
 #============================================
 echo_header "Step 2.5: Making CFBundleIdentifier unique per format"
 
@@ -343,7 +343,7 @@ set_unique_bundle_id() {
     fi
     local base
     base="$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "${plist}")"
-    # 再実行時に二重付与しない（DEST は毎回作り直されるので通常は素の ID）
+    # å†å®Ÿè¡Œæ™‚ã«äºŒé‡ä»˜ä¸Žã—ãªã„ï¼ˆDEST ã¯æ¯Žå›žä½œã‚Šç›´ã•ã‚Œã‚‹ã®ã§é€šå¸¸ã¯ç´ ã® IDï¼‰
     if [[ "${base}" == *."${suffix}" ]]; then
         echo "  $(basename "${bundle_path}"): ${base} (already unique)"
         return
@@ -362,7 +362,7 @@ fi
 echo_success "CFBundleIdentifier uniquification completed"
 
 #============================================
-# Step 3: コード署名（Hardened Runtime）
+# Step 3: ã‚³ãƒ¼ãƒ‰ç½²åï¼ˆHardened Runtimeï¼‰
 #============================================
 echo_header "Step 3: Code Signing"
 
@@ -434,18 +434,18 @@ if [[ ${BUILD_AAX} -eq 1 ]]; then
 fi
 
 #============================================
-# Step 3.5: AAX PACE 署名（wraptool sign, 任意）
+# Step 3.5: AAX PACE ç½²åï¼ˆwraptool sign, ä»»æ„ï¼‰
 #============================================
 if [[ ${BUILD_AAX} -eq 1 ]]; then
-    echo_header "Step 3.5: PACE Eden 署名 (AAX macOS)"
+    echo_header "Step 3.5: PACE Eden ç½²å (AAX macOS)"
 
-    # PACE アカウント情報と WCGUID は .env (または環境変数) から取得。
-    # Windows 側 build_windows.ps1 と揃えた変数名セット:
-    #   PACE_USERNAME     : iLok アカウント名
-    #   PACE_PASSWORD     : iLok パスワード
-    #   PACE_ORGANIZATION : PACE Central Web で発行された WCGUID (プラグインごとに固有)
-    # 旧スクリプト互換のため PACE_WCGUID が設定されていて PACE_ORGANIZATION が未設定なら
-    # それを採用する。
+    # PACE ã‚¢ã‚«ã‚¦ãƒ³ãƒˆæƒ…å ±ã¨ WCGUID ã¯ .env (ã¾ãŸã¯ç’°å¢ƒå¤‰æ•°) ã‹ã‚‰å–å¾—ã€‚
+    # Windows å´ build_windows.ps1 ã¨æƒãˆãŸå¤‰æ•°åã‚»ãƒƒãƒˆ:
+    #   PACE_USERNAME     : iLok ã‚¢ã‚«ã‚¦ãƒ³ãƒˆå
+    #   PACE_PASSWORD     : iLok ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰
+    #   PACE_ORGANIZATION : PACE Central Web ã§ç™ºè¡Œã•ã‚ŒãŸ WCGUID (ãƒ—ãƒ©ã‚°ã‚¤ãƒ³ã”ã¨ã«å›ºæœ‰)
+    # æ—§ã‚¹ã‚¯ãƒªãƒ—ãƒˆäº’æ›ã®ãŸã‚ PACE_WCGUID ãŒè¨­å®šã•ã‚Œã¦ã„ã¦ PACE_ORGANIZATION ãŒæœªè¨­å®šãªã‚‰
+    # ãã‚Œã‚’æŽ¡ç”¨ã™ã‚‹ã€‚
     PACE_ORGANIZATION_EFFECTIVE="${PACE_ORGANIZATION:-${PACE_WCGUID:-}}"
 
     # Guess wraptool location (can be overridden)
@@ -470,15 +470,15 @@ if [[ ${BUILD_AAX} -eq 1 ]]; then
         fi
     done
 
-    # 必須環境変数チェック（Windows 側と同じセット）
+    # å¿…é ˆç’°å¢ƒå¤‰æ•°ãƒã‚§ãƒƒã‚¯ï¼ˆWindows å´ã¨åŒã˜ã‚»ãƒƒãƒˆï¼‰
     MISSING_PACE_VARS=()
     [[ -z "${PACE_USERNAME:-}" ]]              && MISSING_PACE_VARS+=("PACE_USERNAME")
     [[ -z "${PACE_PASSWORD:-}" ]]              && MISSING_PACE_VARS+=("PACE_PASSWORD")
     [[ -z "${PACE_ORGANIZATION_EFFECTIVE}" ]]  && MISSING_PACE_VARS+=("PACE_ORGANIZATION")
 
-    # PACE 署名が失敗/スキップされると未ラップ AAX が出荷され、Pro Tools に拒否される。
-    # リリースでは致命エラーで停止する。意図的に未署名 dev ビルドを作る場合のみ
-    # ALLOW_UNSIGNED_AAX=1 で明示的に回避できる。
+    # PACE ç½²åãŒå¤±æ•—/ã‚¹ã‚­ãƒƒãƒ—ã•ã‚Œã‚‹ã¨æœªãƒ©ãƒƒãƒ— AAX ãŒå‡ºè·ã•ã‚Œã€Pro Tools ã«æ‹’å¦ã•ã‚Œã‚‹ã€‚
+    # ãƒªãƒªãƒ¼ã‚¹ã§ã¯è‡´å‘½ã‚¨ãƒ©ãƒ¼ã§åœæ­¢ã™ã‚‹ã€‚æ„å›³çš„ã«æœªç½²å dev ãƒ“ãƒ«ãƒ‰ã‚’ä½œã‚‹å ´åˆã®ã¿
+    # ALLOW_UNSIGNED_AAX=1 ã§æ˜Žç¤ºçš„ã«å›žé¿ã§ãã‚‹ã€‚
     if [[ -z "${FOUND_WRAPTOOL}" ]]; then
         if [[ "${ALLOW_UNSIGNED_AAX:-0}" == "1" ]]; then
             echo -e "${color_yellow}wraptool not found. Skipping AAX PACE signing (ALLOW_UNSIGNED_AAX=1).${color_reset}"
@@ -510,14 +510,14 @@ if [[ ${BUILD_AAX} -eq 1 ]]; then
             --out "${DEST_AAX}"
         )
 
-        # パスワードをログに出さないよう、コマンドダンプは抑制する
+        # ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã‚’ãƒ­ã‚°ã«å‡ºã•ãªã„ã‚ˆã†ã€ã‚³ãƒžãƒ³ãƒ‰ãƒ€ãƒ³ãƒ—ã¯æŠ‘åˆ¶ã™ã‚‹
         echo -e "${color_gray}wraptool command: ${FOUND_WRAPTOOL} sign --verbose --account ${PACE_USERNAME} --password *** --wcguid ${PACE_ORGANIZATION_EFFECTIVE} --signid ${CODESIGN_IDENTITY} --dsigharden --dsig1-compat on --in ${DEST_AAX} --out ${DEST_AAX}${color_reset}"
         if ! "${FOUND_WRAPTOOL}" "${WRAP_ARGS[@]}"; then
             echo_error "AAX PACE signing failed. Pro Tools will reject an unsigned AAX. Check PACE account/password/WCGUID (note: a CRLF .env can corrupt these values with a trailing \\r)."
             [[ "${ALLOW_UNSIGNED_AAX:-0}" == "1" ]] || exit 1
             echo -e "${color_yellow}Continuing with unsigned AAX (ALLOW_UNSIGNED_AAX=1).${color_reset}"
         elif [[ ! -e "${DEST_AAX}/Contents/__Pace_Eden.bundle" ]]; then
-            echo_error "wraptool returned success but __Pace_Eden.bundle is missing — the AAX is NOT PACE-wrapped and Pro Tools will reject it."
+            echo_error "wraptool returned success but __Pace_Eden.bundle is missing â€” the AAX is NOT PACE-wrapped and Pro Tools will reject it."
             [[ "${ALLOW_UNSIGNED_AAX:-0}" == "1" ]] || exit 1
             echo -e "${color_yellow}Continuing with unsigned AAX (ALLOW_UNSIGNED_AAX=1).${color_reset}"
         else
@@ -527,14 +527,14 @@ if [[ ${BUILD_AAX} -eq 1 ]]; then
 fi
 
 #============================================
-# Step 4: ドキュメントとバージョン情報の生成
+# Step 4: ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆã¨ãƒãƒ¼ã‚¸ãƒ§ãƒ³æƒ…å ±ã®ç”Ÿæˆ
 #============================================
 echo_header "Step 4: Creating documentation and version info"
 
 # Architecture detection (from VST3 executable)
 ARCH="universal"  # Built as Universal Binary
-if [[ -f "${DEST_VST3}/Contents/MacOS/ZeroLimit" ]]; then
-    INFO="$(lipo -info "${DEST_VST3}/Contents/MacOS/ZeroLimit" 2>/dev/null || true)"
+if [[ -f "${DEST_VST3}/Contents/MacOS/Himalaya" ]]; then
+    INFO="$(lipo -info "${DEST_VST3}/Contents/MacOS/Himalaya" 2>/dev/null || true)"
     if echo "$INFO" | grep -q "x86_64" && echo "$INFO" | grep -q "arm64"; then
         ARCH="universal"
         echo "  Verified: Universal Binary (x86_64 + arm64) confirmed"
@@ -546,11 +546,11 @@ if [[ -f "${DEST_VST3}/Contents/MacOS/ZeroLimit" ]]; then
 fi
 
 
-# 英語README（Windows版と同じ体裁）
+# è‹±èªžREADMEï¼ˆWindowsç‰ˆã¨åŒã˜ä½“è£ï¼‰
 AAX_SECTION_EN=""
 if [[ ${BUILD_AAX} -eq 1 ]]; then
     AAX_SECTION_EN="6. For AAX Plugin (Pro Tools):
-   Copy the entire ZeroLimit.aaxplugin folder to the following location:
+   Copy the entire Himalaya.aaxplugin folder to the following location:
    /Library/Application Support/Avid/Audio/Plug-Ins/
 
 Note about AAX Plugin:
@@ -563,7 +563,7 @@ Note about AAX Plugin:
 fi
 
 cat > "${OUTPUT_DIR}/ReadMe.txt" <<EOF
-ZeroLimit ${VERSION} - macOS Installation Guide
+Himalaya ${VERSION} - macOS Installation Guide
 ====================================================
 
 Installation Steps
@@ -571,19 +571,19 @@ Installation Steps
 1. Close your DAW before proceeding.
 
 2. For VST3 Plugin:
-   Copy the entire ZeroLimit.vst3 folder to the following location:
+   Copy the entire Himalaya.vst3 folder to the following location:
    ~/Library/Audio/Plug-Ins/VST3/
 
 3. For Audio Unit (AU):
-   Copy the entire ZeroLimit.component folder to the following location:
+   Copy the entire Himalaya.component folder to the following location:
    ~/Library/Audio/Plug-Ins/Components/
 
 4. For Standalone Application:
-   Copy ZeroLimit.app to any preferred location, for example:
+   Copy Himalaya.app to any preferred location, for example:
    /Applications/ or your Desktop.
 
 5. For CLAP Plugin:
-   Copy the entire ZeroLimit.clap folder to the following location:
+   Copy the entire Himalaya.clap folder to the following location:
    ~/Library/Audio/Plug-Ins/CLAP/
 
 ${AAX_SECTION_EN}7. If macOS shows security warnings:
@@ -594,7 +594,7 @@ ${AAX_SECTION_EN}7. If macOS shows security warnings:
 8. Launch your DAW and rescan for plugins.
 EOF
 
-# フォーマットリストを構築
+# ãƒ•ã‚©ãƒ¼ãƒžãƒƒãƒˆãƒªã‚¹ãƒˆã‚’æ§‹ç¯‰
 if [[ ${BUILD_AAX} -eq 1 ]]; then
     FORMATS='["VST3", "AU", "Standalone", "CLAP", "AAX"]'
     AAX_SIGNING='"unsigned_developer"'
@@ -605,7 +605,7 @@ fi
 
 cat > "${OUTPUT_DIR}/version.json" <<VERSION_JSON
 {
-  "name": "ZeroLimit",
+  "name": "Himalaya",
   "version": "${VERSION}",
   "build_date": "${BUILD_DATE}",
   "platform": "macOS",
@@ -620,7 +620,7 @@ VERSION_JSON
 echo_success "ReadMe.txt and version.json created"
 
 #============================================
-# Step 5: コンポーネント PKG 生成（VST3/AU/AAX/Standalone）
+# Step 5: ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ PKG ç”Ÿæˆï¼ˆVST3/AU/AAX/Standaloneï¼‰
 #============================================
 echo_header "Step 5: Creating component PKGs"
 
@@ -628,14 +628,14 @@ PKG_WORK_DIR="${OUTPUT_DIR}/pkgwork"
 mkdir -p "${PKG_WORK_DIR}"
 
 # Base ID (can be overridden by environment variable)
-PKG_ID_BASE="${PKG_ID_BASE:-com.bucketrelay.zerolimit}"
+PKG_ID_BASE="${PKG_ID_BASE:-com.scobru.himalaya}"
 
 # VST3
 echo_step "Creating VST3 component PKG..."
 PKGROOT_VST3="${PKG_WORK_DIR}/root_vst3"
 rm -rf "${PKGROOT_VST3}" && mkdir -p "${PKGROOT_VST3}/Library/Audio/Plug-Ins/VST3"
 cp -R "${DEST_VST3}" "${PKGROOT_VST3}/Library/Audio/Plug-Ins/VST3/"
-PKG_VST3="${PKG_WORK_DIR}/ZeroLimit_VST3.pkg"
+PKG_VST3="${PKG_WORK_DIR}/Himalaya_VST3.pkg"
 pkgbuild \
     --root "${PKGROOT_VST3}" \
     --identifier "${PKG_ID_BASE}.vst3" \
@@ -651,13 +651,13 @@ PKGROOT_AU="${PKG_WORK_DIR}/root_au"
 rm -rf "${PKGROOT_AU}" && mkdir -p "${PKGROOT_AU}/Library/Audio/Plug-Ins/Components"
 cp -R "${DEST_AU}" "${PKGROOT_AU}/Library/Audio/Plug-Ins/Components/"
 
-# --- Logic カテゴリ用 postinstall（tagset seed）---------------------------------
-#  Logic/GarageBand/MainStage は AU のプラグインカテゴリを Info.plist ではなく
+# --- Logic ã‚«ãƒ†ã‚´ãƒªç”¨ postinstallï¼ˆtagset seedï¼‰---------------------------------
+#  Logic/GarageBand/MainStage ã¯ AU ã®ãƒ—ãƒ©ã‚°ã‚¤ãƒ³ã‚«ãƒ†ã‚´ãƒªã‚’ Info.plist ã§ã¯ãªã
 #   ~/Music/Audio Music Apps/Databases/Tags/<type>-<subtype>-<manufacturer>.tagset
-#   という自前 DB で管理する（UAD 等もこの方式）。ここへ既定カテゴリを seed する。
-#  ※ AU pkg は /Library(システム) へ入るが、この DB はユーザ領域なので postinstall で
-#    実ユーザの $HOME に書く。Logic 系を使わないユーザ(他の AU ホスト専用環境)では
-#    DB が存在しないので、その場合は何もしない（破壊しない・ディレクトリも作らない）。
+#   ã¨ã„ã†è‡ªå‰ DB ã§ç®¡ç†ã™ã‚‹ï¼ˆUAD ç­‰ã‚‚ã“ã®æ–¹å¼ï¼‰ã€‚ã“ã“ã¸æ—¢å®šã‚«ãƒ†ã‚´ãƒªã‚’ seed ã™ã‚‹ã€‚
+#  â€» AU pkg ã¯ /Library(ã‚·ã‚¹ãƒ†ãƒ ) ã¸å…¥ã‚‹ãŒã€ã“ã® DB ã¯ãƒ¦ãƒ¼ã‚¶é ˜åŸŸãªã®ã§ postinstall ã§
+#    å®Ÿãƒ¦ãƒ¼ã‚¶ã® $HOME ã«æ›¸ãã€‚Logic ç³»ã‚’ä½¿ã‚ãªã„ãƒ¦ãƒ¼ã‚¶(ä»–ã® AU ãƒ›ã‚¹ãƒˆå°‚ç”¨ç’°å¢ƒ)ã§ã¯
+#    DB ãŒå­˜åœ¨ã—ãªã„ã®ã§ã€ãã®å ´åˆã¯ä½•ã‚‚ã—ãªã„ï¼ˆç ´å£Šã—ãªã„ãƒ»ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚‚ä½œã‚‰ãªã„ï¼‰ã€‚
 SCRIPTS_AU="${PKG_WORK_DIR}/scripts_au"
 rm -rf "${SCRIPTS_AU}" && mkdir -p "${SCRIPTS_AU}"
 
@@ -671,14 +671,14 @@ echo_step "AU Logic category seed: ${LOGIC_CATEGORY} (tagset=${TAGSET_NAME})"
 
 cat > "${SCRIPTS_AU}/postinstall" <<'POSTINSTALL'
 #!/bin/sh
-# Logic/GarageBand/MainStage のプラグインカテゴリ DB に既定カテゴリを seed。
-#  破壊編集を避けるための多重ガード:
-#   - 実 GUI ユーザが取れない/root のみ → 何もしない
-#   - DB(Tags ディレクトリ)が存在しない(= Apple audio apps 未使用) → 何もしない(作らない)
-#   - 書込不可(ロック/権限) → スキップ
-#   - 既に当該 tagset がある(ユーザ/別バージョンが分類済み) → 上書きしない
-#   - 書込/plist 検証に失敗 → 残骸を消してスキップ
-#  いずれもインストールは必ず成功させる(exit 0)。
+# Logic/GarageBand/MainStage ã®ãƒ—ãƒ©ã‚°ã‚¤ãƒ³ã‚«ãƒ†ã‚´ãƒª DB ã«æ—¢å®šã‚«ãƒ†ã‚´ãƒªã‚’ seedã€‚
+#  ç ´å£Šç·¨é›†ã‚’é¿ã‘ã‚‹ãŸã‚ã®å¤šé‡ã‚¬ãƒ¼ãƒ‰:
+#   - å®Ÿ GUI ãƒ¦ãƒ¼ã‚¶ãŒå–ã‚Œãªã„/root ã®ã¿ â†’ ä½•ã‚‚ã—ãªã„
+#   - DB(Tags ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª)ãŒå­˜åœ¨ã—ãªã„(= Apple audio apps æœªä½¿ç”¨) â†’ ä½•ã‚‚ã—ãªã„(ä½œã‚‰ãªã„)
+#   - æ›¸è¾¼ä¸å¯(ãƒ­ãƒƒã‚¯/æ¨©é™) â†’ ã‚¹ã‚­ãƒƒãƒ—
+#   - æ—¢ã«å½“è©² tagset ãŒã‚ã‚‹(ãƒ¦ãƒ¼ã‚¶/åˆ¥ãƒãƒ¼ã‚¸ãƒ§ãƒ³ãŒåˆ†é¡žæ¸ˆã¿) â†’ ä¸Šæ›¸ãã—ãªã„
+#   - æ›¸è¾¼/plist æ¤œè¨¼ã«å¤±æ•— â†’ æ®‹éª¸ã‚’æ¶ˆã—ã¦ã‚¹ã‚­ãƒƒãƒ—
+#  ã„ãšã‚Œã‚‚ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã¯å¿…ãšæˆåŠŸã•ã›ã‚‹(exit 0)ã€‚
 set -u
 TAGSET_NAME="@@TAGSET_NAME@@"
 CATEGORY="@@CATEGORY@@"
@@ -690,12 +690,12 @@ USER_HOME="$(/usr/bin/dscl . -read /Users/"$CONSOLE_USER" NFSHomeDirectory 2>/de
 [ -n "$USER_HOME" ] || exit 0
 
 TAGDIR="$USER_HOME/Music/Audio Music Apps/Databases/Tags"
-[ -d "$TAGDIR" ] || exit 0    # 存在ガード: DB が無ければ何もしない
-[ -w "$TAGDIR" ] || exit 0    # ロック/権限で書けないならスキップ
+[ -d "$TAGDIR" ] || exit 0    # å­˜åœ¨ã‚¬ãƒ¼ãƒ‰: DB ãŒç„¡ã‘ã‚Œã°ä½•ã‚‚ã—ãªã„
+[ -w "$TAGDIR" ] || exit 0    # ãƒ­ãƒƒã‚¯/æ¨©é™ã§æ›¸ã‘ãªã„ãªã‚‰ã‚¹ã‚­ãƒƒãƒ—
 
 TAGFILE="$TAGDIR/$TAGSET_NAME"
-# 既存 tagset があっても、カテゴリ未割当(空 dict / tags キー無し。Logic がスキャン時に作る
-#  placeholder)なら seed する。既にカテゴリが入っている(ユーザ手動分類等)場合のみ尊重してスキップ。
+# æ—¢å­˜ tagset ãŒã‚ã£ã¦ã‚‚ã€ã‚«ãƒ†ã‚´ãƒªæœªå‰²å½“(ç©º dict / tags ã‚­ãƒ¼ç„¡ã—ã€‚Logic ãŒã‚¹ã‚­ãƒ£ãƒ³æ™‚ã«ä½œã‚‹
+#  placeholder)ãªã‚‰ seed ã™ã‚‹ã€‚æ—¢ã«ã‚«ãƒ†ã‚´ãƒªãŒå…¥ã£ã¦ã„ã‚‹(ãƒ¦ãƒ¼ã‚¶æ‰‹å‹•åˆ†é¡žç­‰)å ´åˆã®ã¿å°Šé‡ã—ã¦ã‚¹ã‚­ãƒƒãƒ—ã€‚
 if [ -e "$TAGFILE" ] && /usr/libexec/PlistBuddy -c "Print :tags" "$TAGFILE" 2>/dev/null | grep -q ' = '; then
     exit 0
 fi
@@ -731,7 +731,7 @@ POSTINSTALL
 chmod +x "${SCRIPTS_AU}/postinstall"
 # ------------------------------------------------------------------------------
 
-PKG_AU="${PKG_WORK_DIR}/ZeroLimit_AU.pkg"
+PKG_AU="${PKG_WORK_DIR}/Himalaya_AU.pkg"
 pkgbuild \
     --root "${PKGROOT_AU}" \
     --identifier "${PKG_ID_BASE}.au" \
@@ -744,7 +744,7 @@ echo_success "AU PKG creation completed"
 
 # Standalone (using --component, /Applications as default. Supports installer location changes)
 echo_step "Creating Standalone component PKG..."
-PKG_APP="${PKG_WORK_DIR}/ZeroLimit_Standalone.pkg"
+PKG_APP="${PKG_WORK_DIR}/Himalaya_Standalone.pkg"
 pkgbuild \
     --component "${DEST_APP}" \
     --identifier "${PKG_ID_BASE}.app" \
@@ -758,7 +758,7 @@ echo_step "Creating CLAP component PKG..."
 PKGROOT_CLAP="${PKG_WORK_DIR}/root_clap"
 rm -rf "${PKGROOT_CLAP}" && mkdir -p "${PKGROOT_CLAP}/Library/Audio/Plug-Ins/CLAP"
 cp -R "${DEST_CLAP}" "${PKGROOT_CLAP}/Library/Audio/Plug-Ins/CLAP/"
-PKG_CLAP="${PKG_WORK_DIR}/ZeroLimit_CLAP.pkg"
+PKG_CLAP="${PKG_WORK_DIR}/Himalaya_CLAP.pkg"
 pkgbuild \
     --root "${PKGROOT_CLAP}" \
     --identifier "${PKG_ID_BASE}.clap" \
@@ -775,7 +775,7 @@ if [[ ${BUILD_AAX} -eq 1 ]]; then
     PKGROOT_AAX="${PKG_WORK_DIR}/root_aax"
     rm -rf "${PKGROOT_AAX}" && mkdir -p "${PKGROOT_AAX}/Library/Application Support/Avid/Audio/Plug-Ins"
     cp -R "${DEST_AAX}" "${PKGROOT_AAX}/Library/Application Support/Avid/Audio/Plug-Ins/"
-    PKG_AAX="${PKG_WORK_DIR}/ZeroLimit_AAX.pkg"
+    PKG_AAX="${PKG_WORK_DIR}/Himalaya_AAX.pkg"
     pkgbuild \
         --root "${PKGROOT_AAX}" \
         --identifier "${PKG_ID_BASE}.aax" \
@@ -787,13 +787,13 @@ if [[ ${BUILD_AAX} -eq 1 ]]; then
 fi
 
 #============================================
-# Step 6: Distribution を組み立て、製品 PKG を署名
+# Step 6: Distribution ã‚’çµ„ã¿ç«‹ã¦ã€è£½å“ PKG ã‚’ç½²å
 #============================================
 echo_header "Step 6: Building signed product PKG"
 
 DIST_XML="${PKG_WORK_DIR}/Distribution.xml"
 RESOURCES_DIR="${PKG_WORK_DIR}/resources"
-# LICENSE をリソースに同梱（存在すれば）
+# LICENSE ã‚’ãƒªã‚½ãƒ¼ã‚¹ã«åŒæ¢±ï¼ˆå­˜åœ¨ã™ã‚Œã°ï¼‰
 mkdir -p "${RESOURCES_DIR}"
 if [[ -f "${ROOT_DIR}/LICENSE" ]]; then
     cp "${ROOT_DIR}/LICENSE" "${RESOURCES_DIR}/LICENSE.txt"
@@ -804,12 +804,12 @@ fi
 {
     echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
     echo "<installer-gui-script minSpecVersion=\"1\">"
-    echo "  <title>ZeroLimit ${VERSION}</title>"
-    # カスタムインストールパネルをデフォルト表示
+    echo "  <title>Himalaya ${VERSION}</title>"
+    # ã‚«ã‚¹ã‚¿ãƒ ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ãƒ‘ãƒãƒ«ã‚’ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆè¡¨ç¤º
     echo "  <options customize=\"always\" allow-external-scripts=\"no\"/>"
-    # ドメイン選択（自分のみ/このMacのすべてのユーザ）を有効化
+    # ãƒ‰ãƒ¡ã‚¤ãƒ³é¸æŠžï¼ˆè‡ªåˆ†ã®ã¿/ã“ã®Macã®ã™ã¹ã¦ã®ãƒ¦ãƒ¼ã‚¶ï¼‰ã‚’æœ‰åŠ¹åŒ–
     echo "  <domains enable_currentUserHome=\"true\" enable_localSystem=\"true\"/>"
-    # ライセンス表示（存在時のみ）
+    # ãƒ©ã‚¤ã‚»ãƒ³ã‚¹è¡¨ç¤ºï¼ˆå­˜åœ¨æ™‚ã®ã¿ï¼‰
     if [[ -n \"${LICENSE_ENTRY}\" ]]; then
         echo "${LICENSE_ENTRY}"
     fi
@@ -822,7 +822,7 @@ fi
         echo "    <line choice=\"choice_aax\"/>"
     fi
     echo "  </choices-outline>"
-    # NOTE: selected/enabled は選択変化のたびに再評価される JS 式のため定数 "true" だと毎回 ON へ戻る。初期状態のみ指定する start_selected/start_enabled を使う。
+    # NOTE: selected/enabled ã¯é¸æŠžå¤‰åŒ–ã®ãŸã³ã«å†è©•ä¾¡ã•ã‚Œã‚‹ JS å¼ã®ãŸã‚å®šæ•° "true" ã ã¨æ¯Žå›ž ON ã¸æˆ»ã‚‹ã€‚åˆæœŸçŠ¶æ…‹ã®ã¿æŒ‡å®šã™ã‚‹ start_selected/start_enabled ã‚’ä½¿ã†ã€‚
     echo "  <choice id=\"choice_vst3\" title=\"VST3 Plugin\" start_enabled=\"true\" start_selected=\"true\">"
     echo "    <pkg-ref id=\"${PKG_ID_BASE}.vst3\"/>"
     echo "  </choice>"
@@ -840,12 +840,12 @@ fi
         echo "    <pkg-ref id=\"${PKG_ID_BASE}.aax\"/>"
         echo "  </choice>"
     fi
-    echo "  <pkg-ref id=\"${PKG_ID_BASE}.vst3\">ZeroLimit_VST3.pkg</pkg-ref>"
-    echo "  <pkg-ref id=\"${PKG_ID_BASE}.au\">ZeroLimit_AU.pkg</pkg-ref>"
-    echo "  <pkg-ref id=\"${PKG_ID_BASE}.app\">ZeroLimit_Standalone.pkg</pkg-ref>"
-    echo "  <pkg-ref id=\"${PKG_ID_BASE}.clap\">ZeroLimit_CLAP.pkg</pkg-ref>"
+    echo "  <pkg-ref id=\"${PKG_ID_BASE}.vst3\">Himalaya_VST3.pkg</pkg-ref>"
+    echo "  <pkg-ref id=\"${PKG_ID_BASE}.au\">Himalaya_AU.pkg</pkg-ref>"
+    echo "  <pkg-ref id=\"${PKG_ID_BASE}.app\">Himalaya_Standalone.pkg</pkg-ref>"
+    echo "  <pkg-ref id=\"${PKG_ID_BASE}.clap\">Himalaya_CLAP.pkg</pkg-ref>"
     if [[ ${BUILD_AAX} -eq 1 ]]; then
-        echo "  <pkg-ref id=\"${PKG_ID_BASE}.aax\">ZeroLimit_AAX.pkg</pkg-ref>"
+        echo "  <pkg-ref id=\"${PKG_ID_BASE}.aax\">Himalaya_AAX.pkg</pkg-ref>"
     fi
     echo "</installer-gui-script>"
 } > "${DIST_XML}"
@@ -869,7 +869,7 @@ if [[ -z "${INSTALLER_IDENTITY:-}" ]]; then
     fi
 fi
 
-PRODUCT_PKG_PATH="${OUTPUT_DIR}/../ZeroLimit_${VERSION}_macOS.pkg"
+PRODUCT_PKG_PATH="${OUTPUT_DIR}/../Himalaya_${VERSION}_macOS.pkg"
 echo_step "Creating product PKG with productbuild..."
 productbuild \
     --distribution "${DIST_XML}" \
@@ -880,7 +880,7 @@ productbuild \
 echo_success "Product PKG creation and signing completed: ${PRODUCT_PKG_PATH}"
 
 #============================================
-# Step 7: PKG をノータライズ → ステープル
+# Step 7: PKG ã‚’ãƒŽãƒ¼ã‚¿ãƒ©ã‚¤ã‚º â†’ ã‚¹ãƒ†ãƒ¼ãƒ—ãƒ«
 #============================================
 echo_header "Step 7: Notarization and Stapling for PKG"
 
@@ -914,18 +914,18 @@ xcrun stapler staple "${PRODUCT_PKG_PATH}"
 echo_success "PKG stapling completed"
 
 #============================================
-# Step 8: 互換用 ZIP の作成（オプション）
+# Step 8: äº’æ›ç”¨ ZIP ã®ä½œæˆï¼ˆã‚ªãƒ—ã‚·ãƒ§ãƒ³ï¼‰
 #============================================
 echo_header "Step 8: Creating ZIP (optional)"
 
 if [[ ${BUILD_AAX} -eq 1 ]]; then
-    ZIP_NAME="ZeroLimit_${VERSION}_macOS_VST3_AU_AAX_CLAP_Standalone.zip"
+    ZIP_NAME="Himalaya_${VERSION}_macOS_VST3_AU_AAX_CLAP_Standalone.zip"
 else
-    ZIP_NAME="ZeroLimit_${VERSION}_macOS_VST3_AU_CLAP_Standalone.zip"
+    ZIP_NAME="Himalaya_${VERSION}_macOS_VST3_AU_CLAP_Standalone.zip"
 fi
 ZIP_PATH="${OUTPUT_DIR}/../${ZIP_NAME}"
 
-# LICENSE を ZIP にも同梱（PKG resources 同梱とは別経路で、トップレベル zip 内からアクセスできるように）
+# LICENSE ã‚’ ZIP ã«ã‚‚åŒæ¢±ï¼ˆPKG resources åŒæ¢±ã¨ã¯åˆ¥çµŒè·¯ã§ã€ãƒˆãƒƒãƒ—ãƒ¬ãƒ™ãƒ« zip å†…ã‹ã‚‰ã‚¢ã‚¯ã‚»ã‚¹ã§ãã‚‹ã‚ˆã†ã«ï¼‰
 if [[ -f "${ROOT_DIR}/LICENSE" && ! -f "${OUTPUT_DIR}/LICENSE.txt" ]]; then
     cp "${ROOT_DIR}/LICENSE" "${OUTPUT_DIR}/LICENSE.txt"
 fi
@@ -953,7 +953,7 @@ echo_step "Creating ZIP..."
 )
 echo_success "ZIP creation completed: ${ZIP_PATH}"
 
-# 最終サマリー
+# æœ€çµ‚ã‚µãƒžãƒªãƒ¼
 PRODUCT_SIZE_MB=$(python3 -c 'import os,sys;print(round(os.path.getsize(sys.argv[1])/1024/1024,2))' "${PRODUCT_PKG_PATH}") || PRODUCT_SIZE_MB="-"
 ZIP_SIZE_MB=$(python3 -c 'import os,sys;print(round(os.path.getsize(sys.argv[1])/1024/1024,2))' "${ZIP_PATH}") || ZIP_SIZE_MB="-"
 
@@ -962,18 +962,18 @@ echo -e "PKG: ${PRODUCT_PKG_PATH} (${PRODUCT_SIZE_MB} MB)"
 echo -e "ZIP: ${ZIP_PATH} (${ZIP_SIZE_MB} MB)"
 echo ""
 echo -e "${color_cyan}The package includes (component choices):${color_reset}"
-echo -e "${color_green}[✓] VST3 (固定先: /Library/Audio/Plug-Ins/VST3)${color_reset}"
-echo -e "${color_green}[✓] AU (固定先: /Library/Audio/Plug-Ins/Components)${color_reset}"
-echo -e "${color_green}[✓] Standalone (既定: /Applications、場所変更可)${color_reset}"
-echo -e "${color_green}[✓] CLAP (固定先: /Library/Audio/Plug-Ins/CLAP)${color_reset}"
+echo -e "${color_green}[âœ“] VST3 (å›ºå®šå…ˆ: /Library/Audio/Plug-Ins/VST3)${color_reset}"
+echo -e "${color_green}[âœ“] AU (å›ºå®šå…ˆ: /Library/Audio/Plug-Ins/Components)${color_reset}"
+echo -e "${color_green}[âœ“] Standalone (æ—¢å®š: /Applicationsã€å ´æ‰€å¤‰æ›´å¯)${color_reset}"
+echo -e "${color_green}[âœ“] CLAP (å›ºå®šå…ˆ: /Library/Audio/Plug-Ins/CLAP)${color_reset}"
 if [[ ${BUILD_AAX} -eq 1 ]]; then
-    echo -e "${color_green}[✓] AAX (固定先: /Library/Application Support/Avid/Audio/Plug-Ins)${color_reset}"
+    echo -e "${color_green}[âœ“] AAX (å›ºå®šå…ˆ: /Library/Application Support/Avid/Audio/Plug-Ins)${color_reset}"
 fi
-echo -e "${color_green}[✓] Installer signed (Developer ID Installer)${color_reset}"
-echo -e "${color_green}[✓] Notarized and stapled (PKG)${color_reset}"
-echo -e "${color_green}[✓] Bundles code-signed (Hardened Runtime)${color_reset}"
+echo -e "${color_green}[âœ“] Installer signed (Developer ID Installer)${color_reset}"
+echo -e "${color_green}[âœ“] Notarized and stapled (PKG)${color_reset}"
+echo -e "${color_green}[âœ“] Bundles code-signed (Hardened Runtime)${color_reset}"
 if [[ ${BUILD_AAX} -eq 1 ]]; then
-    echo -e "${color_green}[✓] AAX PACE signed (if wraptool available)${color_reset}"
+    echo -e "${color_green}[âœ“] AAX PACE signed (if wraptool available)${color_reset}"
 fi
 echo -e "${color_yellow}[ ] Upload to distribution platform${color_reset}"
 echo -e "${color_yellow}[ ] Share with beta testers${color_reset}"

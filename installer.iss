@@ -1,10 +1,10 @@
-; ZeroLimit Installer Script for Inno Setup
+﻿; Himalaya Installer Script for Inno Setup
 ; Requires Inno Setup 6.3.0 or later (for dark mode support)
 
-#define MyAppName "ZeroLimit"
-#define MyAppPublisher "Jun Murakami"
-#define MyAppURL "https://jun-murakami.web.app"
-#define MyAppExeName "ZeroLimit.exe"
+#define MyAppName "Himalaya"
+#define MyAppPublisher "scobru"
+#define MyAppURL "https://github.com/scobru/himalaya"
+#define MyAppExeName "Himalaya.exe"
 
 ; Version is read from VERSION file during build
 #ifndef MyAppVersion
@@ -24,7 +24,7 @@ DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 LicenseFile=LICENSE
 OutputDir=releases\{#MyAppVersion}
-OutputBaseFilename=ZeroLimit_{#MyAppVersion}_Windows_Setup
+OutputBaseFilename=Himalaya_{#MyAppVersion}_Windows_Setup
 SetupIconFile=cmake\icon.ico
 UninstallDisplayIcon={uninstallexe}
 Compression=lzma2
@@ -59,17 +59,17 @@ Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescrip
 
 [Files]
 ; Standalone Application
-Source: "build\plugin\ZeroLimit_artefacts\Release\Standalone\ZeroLimit.exe"; DestDir: "{code:GetStandalonePath}"; Flags: ignoreversion; Components: standalone
-Source: "build\plugin\ZeroLimit_artefacts\Release\Standalone\*.dll"; DestDir: "{code:GetStandalonePath}"; Flags: ignoreversion skipifsourcedoesntexist; Components: standalone
+Source: "build\plugin\Himalaya_artefacts\Release\Standalone\Himalaya.exe"; DestDir: "{code:GetStandalonePath}"; Flags: ignoreversion; Components: standalone
+Source: "build\plugin\Himalaya_artefacts\Release\Standalone\*.dll"; DestDir: "{code:GetStandalonePath}"; Flags: ignoreversion skipifsourcedoesntexist; Components: standalone
 
 ; VST3 Plugin
-Source: "build\plugin\ZeroLimit_artefacts\Release\VST3\ZeroLimit.vst3\*"; DestDir: "{code:GetVST3Path}\ZeroLimit.vst3"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: vst3
+Source: "build\plugin\Himalaya_artefacts\Release\VST3\Himalaya.vst3\*"; DestDir: "{code:GetVST3Path}\Himalaya.vst3"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: vst3
 
-; CLAP Plugin — 単一ファイル（.clap = DLL に拡張子を付けたもの）
-Source: "releases\{#MyAppVersion}\Windows\ZeroLimit.clap"; DestDir: "{code:GetCLAPPath}"; Flags: ignoreversion; Components: clap
+; CLAP Plugin â€” å˜ä¸€ãƒ•ã‚¡ã‚¤ãƒ«ï¼ˆ.clap = DLL ã«æ‹¡å¼µå­ã‚’ä»˜ã‘ãŸã‚‚ã®ï¼‰
+Source: "releases\{#MyAppVersion}\Windows\Himalaya.clap"; DestDir: "{code:GetCLAPPath}"; Flags: ignoreversion; Components: clap
 
-; AAX Plugin — バンドル全体を丸ごとコピー（入れ子は PrepareToInstall で事前削除により防止）
-Source: "releases\{#MyAppVersion}\Windows\ZeroLimit.aaxplugin\*"; DestDir: "{code:GetAAXPath}\ZeroLimit.aaxplugin"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: aax
+; AAX Plugin â€” ãƒãƒ³ãƒ‰ãƒ«å…¨ä½“ã‚’ä¸¸ã”ã¨ã‚³ãƒ”ãƒ¼ï¼ˆå…¥ã‚Œå­ã¯ PrepareToInstall ã§äº‹å‰å‰Šé™¤ã«ã‚ˆã‚Šé˜²æ­¢ï¼‰
+Source: "releases\{#MyAppVersion}\Windows\Himalaya.aaxplugin\*"; DestDir: "{code:GetAAXPath}\Himalaya.aaxplugin"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: aax
 
 
 ; License and Documentation (install to standalone path if selected, otherwise to program files)
@@ -94,18 +94,18 @@ Filename: "{tmp}\vc_redist.x64.exe"; Parameters: "/quiet /norestart"; StatusMsg:
 ; Clean up any generated files
 Type: filesandordirs; Name: "{code:GetStandalonePath}\logs"
 Type: filesandordirs; Name: "{code:GetStandalonePath}\presets"
-Type: filesandordirs; Name: "{localappdata}\ZeroLimit"
-Type: filesandordirs; Name: "{userappdata}\ZeroLimit"
+Type: filesandordirs; Name: "{localappdata}\Himalaya"
+Type: filesandordirs; Name: "{userappdata}\Himalaya"
 
 [Registry]
 ; Register VST3 plugin location
-Root: HKLM64; Subkey: "Software\VST3"; ValueType: string; ValueName: "ZeroLimit"; ValueData: "{code:GetVST3Path}\ZeroLimit.vst3"; Flags: uninsdeletevalue; Components: vst3
+Root: HKLM64; Subkey: "Software\VST3"; ValueType: string; ValueName: "Himalaya"; ValueData: "{code:GetVST3Path}\Himalaya.vst3"; Flags: uninsdeletevalue; Components: vst3
 
-; Register CLAP plugin location（CLAP 規約に厳密なレジストリ要件は無いが、参照用に同じパターンで残す）
-Root: HKLM64; Subkey: "Software\CLAP"; ValueType: string; ValueName: "ZeroLimit"; ValueData: "{code:GetCLAPPath}\ZeroLimit.clap"; Flags: uninsdeletevalue; Components: clap
+; Register CLAP plugin locationï¼ˆCLAP è¦ç´„ã«åŽ³å¯†ãªãƒ¬ã‚¸ã‚¹ãƒˆãƒªè¦ä»¶ã¯ç„¡ã„ãŒã€å‚ç…§ç”¨ã«åŒã˜ãƒ‘ã‚¿ãƒ¼ãƒ³ã§æ®‹ã™ï¼‰
+Root: HKLM64; Subkey: "Software\CLAP"; ValueType: string; ValueName: "Himalaya"; ValueData: "{code:GetCLAPPath}\Himalaya.clap"; Flags: uninsdeletevalue; Components: clap
 
 ; Register AAX plugin location
-Root: HKLM64; Subkey: "Software\Avid\ProTools\AAX"; ValueType: string; ValueName: "ZeroLimit"; ValueData: "{code:GetAAXPath}\ZeroLimit.aaxplugin"; Flags: uninsdeletevalue; Components: aax
+Root: HKLM64; Subkey: "Software\Avid\ProTools\AAX"; ValueType: string; ValueName: "Himalaya"; ValueData: "{code:GetAAXPath}\Himalaya.aaxplugin"; Flags: uninsdeletevalue; Components: aax
 
 [Code]
 var
@@ -168,7 +168,7 @@ begin
 
   // Add input fields for each component
   PathSelectionPage.Add('Standalone Application:');
-  PathSelectionPage.Values[0] := ExpandConstant('{autopf}\ZeroLimit');
+  PathSelectionPage.Values[0] := ExpandConstant('{autopf}\Himalaya');
 
   PathSelectionPage.Add('VST3 Plugin:');
   PathSelectionPage.Values[1] := ExpandConstant('{commoncf64}\VST3');
@@ -237,7 +237,7 @@ begin
     begin
       if MsgBox('Microsoft Visual C++ Redistributables are required but not installed.' + #13#10 + #13#10 +
                 'Would you like to download and install them now?' + #13#10 +
-                '(Required for ZeroLimit to run properly)', mbConfirmation, MB_YESNO) = IDYES then
+                '(Required for Himalaya to run properly)', mbConfirmation, MB_YESNO) = IDYES then
       begin
         DownloadPage.Clear;
         DownloadPage.Add('https://aka.ms/vs/17/release/vc_redist.x64.exe', 'vc_redist.x64.exe', '');
@@ -247,7 +247,7 @@ begin
           Result := True;
         except
           MsgBox('Failed to download Visual C++ Redistributables.' + #13#10 +
-                 'ZeroLimit may not work properly without them.' + #13#10 + #13#10 +
+                 'Himalaya may not work properly without them.' + #13#10 + #13#10 +
                  'You can download them manually from:' + #13#10 +
                  'https://aka.ms/vs/17/release/vc_redist.x64.exe', mbError, MB_OK);
           Result := True; // Continue installation anyway
@@ -255,7 +255,7 @@ begin
       end
       else
       begin
-        MsgBox('Warning: ZeroLimit may not work without Visual C++ Redistributables.' + #13#10 + #13#10 +
+        MsgBox('Warning: Himalaya may not work without Visual C++ Redistributables.' + #13#10 + #13#10 +
                'You can download them later from:' + #13#10 +
                'https://aka.ms/vs/17/release/vc_redist.x64.exe', mbInformation, MB_OK);
       end;
@@ -285,7 +285,7 @@ begin
     else
       TargetPath := ExpandConstant('{commoncf64}\VST3');
 
-    TestFile := TargetPath + '\ZeroLimit.vst3\Contents\x86_64-win\ZeroLimit.vst3';
+    TestFile := TargetPath + '\Himalaya.vst3\Contents\x86_64-win\Himalaya.vst3';
     if FileExists(TestFile) then
     begin
       FileLocked := not DeleteFile(TestFile);
@@ -293,7 +293,7 @@ begin
       begin
         Log('VST3 plugin appears to be in use (file locked)');
         if MsgBox('The VST3 plugin appears to be in use by a DAW.' + #13#10 + #13#10 +
-                  'Please close any DAW that might be using ZeroLimit and try again.' + #13#10 + #13#10 +
+                  'Please close any DAW that might be using Himalaya and try again.' + #13#10 + #13#10 +
                   'Continue anyway? (Installation may fail)', mbConfirmation, MB_YESNO) = IDNO then
         begin
           Result := 'Plugin files are locked. Please close your DAW and try again.';
@@ -311,7 +311,7 @@ begin
     else
       TargetPath := ExpandConstant('{commoncf64}\CLAP');
 
-    TestFile := TargetPath + '\ZeroLimit.clap';
+    TestFile := TargetPath + '\Himalaya.clap';
     if FileExists(TestFile) then
     begin
       FileLocked := not DeleteFile(TestFile);
@@ -319,7 +319,7 @@ begin
       begin
         Log('CLAP plugin appears to be in use (file locked)');
         if MsgBox('The CLAP plugin appears to be in use by a DAW.' + #13#10 + #13#10 +
-                  'Please close any DAW that might be using ZeroLimit and try again.' + #13#10 + #13#10 +
+                  'Please close any DAW that might be using Himalaya and try again.' + #13#10 + #13#10 +
                   'Continue anyway? (Installation may fail)', mbConfirmation, MB_YESNO) = IDNO then
         begin
           Result := 'Plugin files are locked. Please close your DAW and try again.';
@@ -338,11 +338,11 @@ begin
     else
       TargetPath := ExpandConstant('{commoncf64}\Avid\Audio\Plug-Ins');
 
-    // 既存の AAX バンドルを丸ごと削除してからインストール（入れ子防止）
-    if DirExists(TargetPath + '\ZeroLimit.aaxplugin') then
+    // æ—¢å­˜ã® AAX ãƒãƒ³ãƒ‰ãƒ«ã‚’ä¸¸ã”ã¨å‰Šé™¤ã—ã¦ã‹ã‚‰ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ï¼ˆå…¥ã‚Œå­é˜²æ­¢ï¼‰
+    if DirExists(TargetPath + '\Himalaya.aaxplugin') then
     begin
       Log('Removing existing AAX bundle to avoid nested installation');
-      if not DelTree(TargetPath + '\ZeroLimit.aaxplugin', True, True, True) then
+      if not DelTree(TargetPath + '\Himalaya.aaxplugin', True, True, True) then
       begin
         Log('Failed to remove existing AAX bundle (possibly in use)');
         if MsgBox('The AAX plugin appears to be in use by Pro Tools.' + #13#10 + #13#10 +
@@ -363,20 +363,20 @@ begin
     if StandalonePath <> '' then
       TargetPath := StandalonePath
     else
-      TargetPath := ExpandConstant('{autopf}\ZeroLimit');
+      TargetPath := ExpandConstant('{autopf}\Himalaya');
 
-    TestFile := TargetPath + '\ZeroLimit.exe';
+    TestFile := TargetPath + '\Himalaya.exe';
     if FileExists(TestFile) then
     begin
       FileLocked := not DeleteFile(TestFile);
       if FileLocked then
       begin
         Log('Standalone application appears to be running');
-        if MsgBox('ZeroLimit standalone application appears to be running.' + #13#10 + #13#10 +
+        if MsgBox('Himalaya standalone application appears to be running.' + #13#10 + #13#10 +
                   'Please close it and try again.' + #13#10 + #13#10 +
                   'Continue anyway? (Installation may fail)', mbConfirmation, MB_YESNO) = IDNO then
         begin
-          Result := 'ZeroLimit.exe is running. Please close it and try again.';
+          Result := 'Himalaya.exe is running. Please close it and try again.';
           Exit;
         end;
       end;
@@ -398,7 +398,7 @@ end;
 function GetStandalonePath(Param: String): String;
 begin
   if StandalonePath = '' then
-    Result := ExpandConstant('{autopf}\ZeroLimit')
+    Result := ExpandConstant('{autopf}\Himalaya')
   else
     Result := StandalonePath;
 end;
@@ -433,12 +433,12 @@ begin
   if IsComponentSelected('standalone') then
     Result := GetStandalonePath('')
   else
-    Result := ExpandConstant('{autopf}\ZeroLimit');
+    Result := ExpandConstant('{autopf}\Himalaya');
 end;
 
 procedure DeinitializeUninstall();
 begin
   // Clean up any remaining files
-  DelTree(ExpandConstant('{localappdata}\ZeroLimit'), True, True, True);
-  DelTree(ExpandConstant('{userappdata}\ZeroLimit'), True, True, True);
+  DelTree(ExpandConstant('{localappdata}\Himalaya'), True, True, True);
+  DelTree(ExpandConstant('{userappdata}\Himalaya'), True, True, True);
 end;

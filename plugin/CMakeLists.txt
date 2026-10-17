@@ -39,15 +39,15 @@ if(UNIX AND NOT APPLE)
 endif()
 
 # プラグイン定義（JUCE v8）
-juce_add_plugin(ZeroLimit
+juce_add_plugin(Himalaya
     VERSION ${PROJECT_VERSION}
-    PRODUCT_NAME "ZeroLimit"
-    COMPANY_NAME "Jun Murakami"
-    BUNDLE_ID "com.junmurakami.zerolimit"
-    PLUGIN_MANUFACTURER_CODE Jmbc
-    PLUGIN_CODE ZrLm
+    PRODUCT_NAME "Himalaya"
+    COMPANY_NAME "scobru"
+    BUNDLE_ID "com.scobru.himalaya"
+    PLUGIN_MANUFACTURER_CODE Scob
+    PLUGIN_CODE Hima
     FORMATS ${ZEROLIMIT_FORMATS}
-    LV2URI "https://junmurakami.com/apps/zerolimit"
+    LV2URI "https://github.com/scobru/himalaya"
     PLUGIN_AU_MAIN_TYPE "aufx"
     VST3_CATEGORIES "Fx" "Dynamics"
     AAX_CATEGORY "AAX_ePlugInCategory_Dynamics"
@@ -56,7 +56,7 @@ juce_add_plugin(ZeroLimit
     NEEDS_MIDI_OUTPUT FALSE
     IS_MIDI_EFFECT FALSE
     EDITOR_WANTS_KEYBOARD_FOCUS TRUE
-    COPY_PLUGIN_AFTER_BUILD TRUE
+    COPY_PLUGIN_AFTER_BUILD FALSE
     ${ICON_ARGS}
 
     # WebView 利用
@@ -64,15 +64,15 @@ juce_add_plugin(ZeroLimit
     NEEDS_WEBVIEW2 TRUE
 )
 
-juce_generate_juce_header(ZeroLimit)
+juce_generate_juce_header(Himalaya)
 
 # CLAP ターゲット生成（clap-juce-extensions 経由・Windows / macOS / Linux 全て）
-clap_juce_extensions_plugin(TARGET ZeroLimit
-    CLAP_ID "com.junmurakami.zerolimit"
+clap_juce_extensions_plugin(TARGET Himalaya
+    CLAP_ID "com.scobru.himalaya"
     CLAP_FEATURES audio-effect limiter)
 
 # ソースファイル
-target_sources(ZeroLimit PRIVATE
+target_sources(Himalaya PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PluginEditor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PluginEditor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PluginProcessor.cpp
@@ -93,7 +93,7 @@ target_sources(ZeroLimit PRIVATE
 )
 
 if(APPLE)
-    target_sources(ZeroLimit PRIVATE
+    target_sources(Himalaya PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src/KeyEventForwarder_mac.mm
     )
 endif()
@@ -105,15 +105,15 @@ configure_file(
     @ONLY
 )
 
-target_include_directories(ZeroLimit PRIVATE
+target_include_directories(Himalaya PRIVATE
     ${ZEROLIMIT_SRC_DIR}
     ${ZEROLIMIT_SRC_DIR}/dsp
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-target_include_directories(ZeroLimit SYSTEM PUBLIC ${JUCE_MODULES_DIR})
+target_include_directories(Himalaya SYSTEM PUBLIC ${JUCE_MODULES_DIR})
 
-target_link_libraries(ZeroLimit
+target_link_libraries(Himalaya
     PRIVATE
         juce::juce_audio_basics
         juce::juce_audio_devices
@@ -137,18 +137,18 @@ target_link_libraries(ZeroLimit
 #  JUCE はプラグインターゲットへ X11 を直接リンクしないため、自前で追加する。
 if(UNIX AND NOT APPLE)
     find_package(X11 REQUIRED)
-    target_link_libraries(ZeroLimit PRIVATE ${X11_LIBRARIES})
-    target_include_directories(ZeroLimit PRIVATE ${X11_INCLUDE_DIR})
+    target_link_libraries(Himalaya PRIVATE ${X11_LIBRARIES})
+    target_include_directories(Himalaya PRIVATE ${X11_INCLUDE_DIR})
 endif()
 
 # macOS: ヘッダパッド確保（署名/wraptool 対策）
 if(APPLE)
-    if (TARGET ZeroLimit)
-        target_link_options(ZeroLimit PRIVATE -Wl,-headerpad,578)
-        target_link_libraries(ZeroLimit PUBLIC "-framework ApplicationServices")
+    if (TARGET Himalaya)
+        target_link_options(Himalaya PRIVATE -Wl,-headerpad,578)
+        target_link_libraries(Himalaya PUBLIC "-framework ApplicationServices")
     endif()
 
-    foreach(wrapperTarget IN ITEMS ZeroLimit_VST3 ZeroLimit_AU ZeroLimit_Standalone ZeroLimit_AAX)
+    foreach(wrapperTarget IN ITEMS Himalaya_VST3 Himalaya_AU Himalaya_Standalone Himalaya_AAX)
         if (TARGET ${wrapperTarget})
             target_link_options(${wrapperTarget} PRIVATE -Wl,-headerpad,578)
             target_link_libraries(${wrapperTarget} PRIVATE "-framework ApplicationServices")
@@ -157,7 +157,7 @@ if(APPLE)
 endif()
 
 # 共通コンパイル定義（WebView 有効化）
-target_compile_definitions(ZeroLimit PUBLIC
+target_compile_definitions(Himalaya PUBLIC
     JUCE_WEB_BROWSER=1
     JUCE_USE_CURL=0
     JUCE_VST3_CAN_REPLACE_VST2=0
@@ -165,8 +165,8 @@ target_compile_definitions(ZeroLimit PUBLIC
     $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:JUCE_DEBUG=1>
     $<$<PLATFORM_ID:Windows>:JUCE_USE_WIN_WEBVIEW2_WITH_STATIC_LINKING=1>
 
-    JucePlugin_ManufacturerCode=0x4a6d6263
-    JucePlugin_PluginCode=0x5a724c6d
+    JucePlugin_ManufacturerCode=0x53636f62
+    JucePlugin_PluginCode=0x48696d61
     JucePlugin_IsSynth=0
     JucePlugin_WantsMidiInput=0
     JucePlugin_ProducesMidiOutput=0
@@ -175,10 +175,12 @@ target_compile_definitions(ZeroLimit PUBLIC
 )
 
 # Dev/Prod の読み分け
-target_compile_definitions(ZeroLimit PRIVATE
+target_compile_definitions(Himalaya PRIVATE
     $<$<CONFIG:Debug>:ZEROLIMIT_DEV_MODE=1>
+    $<$<CONFIG:Debug>:HIMALAYA_DEV_MODE=1>
     $<$<CONFIG:Debug>:LOCAL_DEV_SERVER_ADDRESS="http://127.0.0.1:5173">
     $<$<NOT:$<CONFIG:Debug>>:ZEROLIMIT_DEV_MODE=0>
+    $<$<NOT:$<CONFIG:Debug>>:HIMALAYA_DEV_MODE=0>
 )
 
 # WebView 埋め込み用 ZIP の作成
@@ -214,7 +216,7 @@ add_custom_target(ZipWebViewFiles
 )
 
 cmake_path(GET PUBLIC_PATH FILENAME ZIPPED_FILES_PREFIX)
-target_compile_definitions(ZeroLimit PRIVATE
+target_compile_definitions(Himalaya PRIVATE
     $<$<NOT:$<CONFIG:Debug>>:ZIPPED_FILES_PREFIX="${ZIPPED_FILES_PREFIX}/">
 )
 
@@ -225,32 +227,32 @@ juce_add_binary_data(WebViewFiles
 )
 add_dependencies(WebViewFiles ZipWebViewFiles)
 
-target_link_libraries(ZeroLimit PRIVATE
+target_link_libraries(Himalaya PRIVATE
     $<$<NOT:$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>>:WebViewFiles>
 )
 
 # Windows 固有設定
 if(WIN32)
-    target_compile_definitions(ZeroLimit PRIVATE
+    target_compile_definitions(Himalaya PRIVATE
         NOMINMAX
         WIN32_LEAN_AND_MEAN
     )
-    target_compile_options(ZeroLimit PRIVATE
+    target_compile_options(Himalaya PRIVATE
         /utf-8
     )
-    target_link_libraries(ZeroLimit PRIVATE Dbghelp)
+    target_link_libraries(Himalaya PRIVATE Dbghelp)
 
-    # CLAP ラッパー(clap-juce-wrapper.cpp)は clap-juce-extensions 側で ZeroLimit_CLAP
-    # ターゲットとしてコンパイルされ、上の ZeroLimit への /utf-8 が届かない。DPI パッチが
+    # CLAP ラッパー(clap-juce-wrapper.cpp)は clap-juce-extensions 側で Himalaya_CLAP
+    # ターゲットとしてコンパイルされ、上の Himalaya への /utf-8 が届かない。DPI パッチが
     # UTF-8 の日本語コメントを追加しているため、MSVC が既定コードページ(CP932)で解釈すると
     # コメントが後続コードを飲み込み C2059/C3861 等で壊れる。CLAP にも /utf-8 を明示する。
-    if(TARGET ZeroLimit_CLAP)
-        target_compile_options(ZeroLimit_CLAP PRIVATE /utf-8)
+    if(TARGET Himalaya_CLAP)
+        target_compile_options(Himalaya_CLAP PRIVATE /utf-8)
     endif()
 endif()
 
 if(MSVC)
-    foreach(wrapperTarget IN ITEMS ZeroLimit ZeroLimit_VST3 ZeroLimit_Standalone ZeroLimit_AAX)
+    foreach(wrapperTarget IN ITEMS Himalaya Himalaya_VST3 Himalaya_Standalone Himalaya_AAX)
         if (TARGET ${wrapperTarget})
             target_compile_options(${wrapperTarget} PRIVATE
                 $<$<CONFIG:Debug>:/Zi>

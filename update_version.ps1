@@ -1,4 +1,4 @@
-# ZeroLimit Version Update Script
+﻿# Himalaya Version Update Script
 # Updates version across all project files
 
 param(
@@ -21,17 +21,17 @@ if (-not $ScriptDir) { $ScriptDir = (Get-Location).Path }
 $RootDir = $ScriptDir
 
 Write-Host "============================================" -ForegroundColor Cyan
-Write-Host "   Updating ZeroLimit version to $NewVersion" -ForegroundColor Cyan
+Write-Host "   Updating Himalaya version to $NewVersion" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
 # 1. Update VERSION file
-Write-Host "► Updating VERSION file..." -ForegroundColor Yellow
+Write-Host "â–º Updating VERSION file..." -ForegroundColor Yellow
 $NewVersion | Out-File -FilePath "$RootDir\VERSION" -NoNewline -Encoding UTF8
-Write-Host "✓ VERSION file updated" -ForegroundColor Green
+Write-Host "âœ“ VERSION file updated" -ForegroundColor Green
 
 # 2. Update package.json
-Write-Host "► Updating package.json..." -ForegroundColor Yellow
+Write-Host "â–º Updating package.json..." -ForegroundColor Yellow
 $PackageJsonPath = "$RootDir\webui\package.json"
 if (Test-Path $PackageJsonPath) {
     $Content = Get-Content $PackageJsonPath -Raw
@@ -43,21 +43,21 @@ if (Test-Path $PackageJsonPath) {
     $Content = $Content -replace '"version":\s*"[^"]+"', "`"version`": `"$BaseVersion`""
     
     $Content | Set-Content $PackageJsonPath -NoNewline -Encoding UTF8
-    Write-Host "✓ package.json updated to $BaseVersion" -ForegroundColor Green
+    Write-Host "âœ“ package.json updated to $BaseVersion" -ForegroundColor Green
 } else {
-    Write-Host "⚠ package.json not found" -ForegroundColor Yellow
+    Write-Host "âš  package.json not found" -ForegroundColor Yellow
 }
 
 # 3. Update PluginEditor.cpp
-Write-Host "► Updating PluginEditor.cpp..." -ForegroundColor Yellow
+Write-Host "â–º Updating PluginEditor.cpp..." -ForegroundColor Yellow
 $PluginEditorPath = "$RootDir\plugin\src\PluginEditor.cpp"
 if (Test-Path $PluginEditorPath) {
     $Content = Get-Content $PluginEditorPath -Raw
     $Content = $Content -replace '\.withInitialisationData\("pluginVersion", "[^"]+"\)', ".withInitialisationData(`"pluginVersion`", `"$NewVersion`")"
     $Content | Set-Content $PluginEditorPath -NoNewline -Encoding UTF8
-    Write-Host "✓ PluginEditor.cpp updated" -ForegroundColor Green
+    Write-Host "âœ“ PluginEditor.cpp updated" -ForegroundColor Green
 } else {
-    Write-Host "⚠ PluginEditor.cpp not found" -ForegroundColor Yellow
+    Write-Host "âš  PluginEditor.cpp not found" -ForegroundColor Yellow
 }
 
 # 4. Update build scripts
@@ -70,7 +70,7 @@ $ScriptsToUpdate = @(
 foreach ($Script in $ScriptsToUpdate) {
     if (Test-Path $Script) {
         $ScriptName = Split-Path $Script -Leaf
-        Write-Host "► Updating $ScriptName..." -ForegroundColor Yellow
+        Write-Host "â–º Updating $ScriptName..." -ForegroundColor Yellow
         
         $Content = Get-Content $Script -Raw
         
@@ -80,7 +80,7 @@ foreach ($Script in $ScriptsToUpdate) {
         $Content = $Content -replace 'set VERSION=[^\r\n]+', "set VERSION=$NewVersion"
         
         $Content | Set-Content $Script -NoNewline -Encoding UTF8
-        Write-Host "✓ $ScriptName updated" -ForegroundColor Green
+        Write-Host "âœ“ $ScriptName updated" -ForegroundColor Green
     }
 }
 

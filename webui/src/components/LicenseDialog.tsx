@@ -91,44 +91,44 @@ export const LicenseDialog: React.FC<LicenseDialogProps> = ({ open, onClose }) =
       <DialogContent sx={{ fontSize: '0.80rem', display: 'flex', flexDirection: 'column', gap: 1, flex: 1, minHeight: 0, p: 2 }}>
         {/* 見出し（中央寄せ）、その下にバージョン/クレジット */}
         <Box sx={{ textAlign: 'center', py: 0.5 }}>
-          <Typography variant='h6' sx={{ fontWeight: 700, letterSpacing: 0.3, fontSize: '1.25rem' }}>
-            ZeroLimit
+          <Typography variant='h6' sx={{ fontWeight: 800, letterSpacing: '1px', fontSize: '1.35rem', color: '#00d2ff', textShadow: '0 0 12px rgba(0, 210, 255, 0.4)' }}>
+            HIMALAYA
           </Typography>
-          <Typography variant='caption' color='text.secondary' sx={{ fontSize: '0.72rem' }}>
+          <Typography variant='caption' sx={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>
             v{DISPLAY_VERSION}
           </Typography>
-          <Typography variant='body2' sx={{ mt: 0.5, fontSize: '0.80rem' }}>
-            Developed by{' '}
+          <Typography variant='body2' sx={{ mt: 0.5, fontSize: '0.82rem', color: '#f8fafc' }}>
+            Maintained by{' '}
             <MuiLink
-              href='https://jun-murakami.web.app/'
-              onClick={(e) => handleLinkClick(e, 'https://jun-murakami.web.app/')}
-              sx={{ cursor: 'pointer' }}
+              href='https://github.com/scobru'
+              onClick={(e) => handleLinkClick(e, 'https://github.com/scobru')}
+              sx={{ cursor: 'pointer', color: '#00d2ff', fontWeight: 600 }}
             >
-              Jun Murakami
+              scobru
             </MuiLink>
           </Typography>
-          <Typography variant='body2' color='text.secondary' sx={{ fontSize: '0.78rem' }}>
-            Made with JUCE
+          <Typography variant='body2' sx={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+            Built with JUCE 8 • Zero-Latency Multiband Limiter
           </Typography>
-          <Typography variant='caption' color='text.secondary' sx={{ display: 'block', mt: 0.75, fontSize: '0.70rem' }}>
+          <Typography variant='caption' sx={{ display: 'block', mt: 0.75, fontSize: '0.72rem', color: '#64748b' }}>
             Licensed under{' '}
             <MuiLink
               href='https://www.gnu.org/licenses/agpl-3.0.html'
               onClick={(e) => handleLinkClick(e, 'https://www.gnu.org/licenses/agpl-3.0.html')}
-              sx={{ cursor: 'pointer' }}
+              sx={{ cursor: 'pointer', color: '#00d2ff' }}
             >
               GNU AGPLv3 or later
             </MuiLink>
             {' — '}
             <MuiLink
-              href='https://github.com/Jun-Murakami/ZeroLimit'
-              onClick={(e) => handleLinkClick(e, 'https://github.com/Jun-Murakami/ZeroLimit')}
-              sx={{ cursor: 'pointer' }}
+              href='https://github.com/scobru/himalaya'
+              onClick={(e) => handleLinkClick(e, 'https://github.com/scobru/himalaya')}
+              sx={{ cursor: 'pointer', color: '#00d2ff' }}
             >
               Source on GitHub
             </MuiLink>
           </Typography>
-          <Typography variant='caption' color='text.secondary' sx={{ display: 'block', mt: 0.5, fontSize: '0.66rem', lineHeight: 1.35, fontStyle: 'italic', maxWidth: 480, mx: 'auto' }}>
+          <Typography variant='caption' sx={{ display: 'block', mt: 0.5, fontSize: '0.66rem', lineHeight: 1.35, fontStyle: 'italic', maxWidth: 480, mx: 'auto', color: '#64748b' }}>
             This program is distributed WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
           </Typography>
         </Box>

@@ -1,4 +1,4 @@
-# ZeroLimit Windows Release Build Script
+﻿# Himalaya Windows Release Build Script
 # PowerShell script for building production release with embedded WebUI
 
 param(
@@ -36,21 +36,21 @@ function Write-Header {
 
 function Write-Step {
     param([string]$Text)
-    Write-Host "► $Text" -ForegroundColor Yellow
+    Write-Host "â–º $Text" -ForegroundColor Yellow
 }
 
 function Write-Success {
     param([string]$Text)
-    Write-Host "✓ $Text" -ForegroundColor Green
+    Write-Host "âœ“ $Text" -ForegroundColor Green
 }
 
 function Write-Error {
     param([string]$Text)
-    Write-Host "✗ $Text" -ForegroundColor Red
+    Write-Host "âœ— $Text" -ForegroundColor Red
 }
 
 # Start build process
-Write-Header "ZeroLimit $Version Build Script"
+Write-Header "Himalaya $Version Build Script"
 
 # Load .env file if present (KEY=VALUE format, one per line)
 $EnvFilePath = "$RootDir\.env"
@@ -151,8 +151,8 @@ if (Test-Path "$AAXSDKPath\Interfaces\AAX.h") {
     $AAXLibraryPath = "$AAXSDKPath\Libs\Release\AAXLibrary.lib"
     $AAXLibraryBuildDir = "$AAXSDKPath\Libs\AAXLibrary\build"
     
-    # AAX ライブラリは Release 構成では内容が変わらないため、ビルド済みなら再利用する。
-    # （以前は毎回フル削除→再ビルドしていた。-RebuildAAXLib で強制再ビルド可能。）
+    # AAX ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã¯ Release æ§‹æˆã§ã¯å†…å®¹ãŒå¤‰ã‚ã‚‰ãªã„ãŸã‚ã€ãƒ“ãƒ«ãƒ‰æ¸ˆã¿ãªã‚‰å†åˆ©ç”¨ã™ã‚‹ã€‚
+    # ï¼ˆä»¥å‰ã¯æ¯Žå›žãƒ•ãƒ«å‰Šé™¤â†’å†ãƒ“ãƒ«ãƒ‰ã—ã¦ã„ãŸã€‚-RebuildAAXLib ã§å¼·åˆ¶å†ãƒ“ãƒ«ãƒ‰å¯èƒ½ã€‚ï¼‰
     if ((Test-Path $AAXLibraryPath) -and -not $RebuildAAXLib) {
         Write-Success "AAX Library already built (cached) - skipping rebuild"
     } else {
@@ -216,7 +216,7 @@ Set-Location $WebUIDir
 
 # Install/refresh npm dependencies on every build so it is never skipped.
 # (Source tree is Syncthing-synced across platforms, so node_modules may be
-#  stale or missing; npm install — not ci — tolerates lockfile/platform drift.)
+#  stale or missing; npm install â€” not ci â€” tolerates lockfile/platform drift.)
 Write-Step "Installing npm dependencies..."
 npm install
 if ($LASTEXITCODE -ne 0) {
@@ -259,9 +259,9 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # Build all plugin formats in a single cmake invocation so shared dependencies
-# (JUCE モジュール等) はまとめて 1 回だけコンパイルされ、各フォーマットは並列ビルドされる。
-$BuildTargets = @("ZeroLimit_VST3", "ZeroLimit_Standalone", "ZeroLimit_CLAP")
-if ($BuildAAX) { $BuildTargets += "ZeroLimit_AAX" }
+# (JUCE ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ç­‰) ã¯ã¾ã¨ã‚ã¦ 1 å›žã ã‘ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«ã•ã‚Œã€å„ãƒ•ã‚©ãƒ¼ãƒžãƒƒãƒˆã¯ä¸¦åˆ—ãƒ“ãƒ«ãƒ‰ã•ã‚Œã‚‹ã€‚
+$BuildTargets = @("Himalaya_VST3", "Himalaya_Standalone", "Himalaya_CLAP")
+if ($BuildAAX) { $BuildTargets += "Himalaya_AAX" }
 
 Write-Step ("Building plugin formats: " + ($BuildTargets -join ', '))
 cmake --build . --config $Configuration --target $BuildTargets --parallel
@@ -276,14 +276,14 @@ Write-Header "Step 3: Packaging for distribution"
 
 # Copy VST3 files
 Write-Step "Copying VST3 files..."
-$SourceVST3 = "$BuildDir\plugin\ZeroLimit_artefacts\$Configuration\VST3\ZeroLimit.vst3"
-$DestVST3 = "$OutputDir\Windows\ZeroLimit.vst3"
+$SourceVST3 = "$BuildDir\plugin\Himalaya_artefacts\$Configuration\VST3\Himalaya.vst3"
+$DestVST3 = "$OutputDir\Windows\Himalaya.vst3"
 
 if (Test-Path $SourceVST3) {
-    # 既存の VST3 バンドルがある場合は削除してからコピーする。
-    # PowerShell の Copy-Item は、宛先フォルダが既に存在すると
-    # SourceDir を DestDir\(SourceDir名) として入れ子にしてしまうため、
-    # 二重フォルダ生成を避ける。
+    # æ—¢å­˜ã® VST3 ãƒãƒ³ãƒ‰ãƒ«ãŒã‚ã‚‹å ´åˆã¯å‰Šé™¤ã—ã¦ã‹ã‚‰ã‚³ãƒ”ãƒ¼ã™ã‚‹ã€‚
+    # PowerShell ã® Copy-Item ã¯ã€å®›å…ˆãƒ•ã‚©ãƒ«ãƒ€ãŒæ—¢ã«å­˜åœ¨ã™ã‚‹ã¨
+    # SourceDir ã‚’ DestDir\(SourceDirå) ã¨ã—ã¦å…¥ã‚Œå­ã«ã—ã¦ã—ã¾ã†ãŸã‚ã€
+    # äºŒé‡ãƒ•ã‚©ãƒ«ãƒ€ç”Ÿæˆã‚’é¿ã‘ã‚‹ã€‚
     if (Test-Path $DestVST3) {
         Remove-Item -Path $DestVST3 -Recurse -Force
     }
@@ -296,11 +296,11 @@ if (Test-Path $SourceVST3) {
 
 # Copy Standalone files
 Write-Step "Copying Standalone files..."
-$SourceStandalone = "$BuildDir\plugin\ZeroLimit_artefacts\$Configuration\Standalone\ZeroLimit.exe"
-$DestStandalone = "$OutputDir\Windows\ZeroLimit.exe"
+$SourceStandalone = "$BuildDir\plugin\Himalaya_artefacts\$Configuration\Standalone\Himalaya.exe"
+$DestStandalone = "$OutputDir\Windows\Himalaya.exe"
 
 if (Test-Path $SourceStandalone) {
-    # 既存の EXE がある場合は削除してからコピーする（上書き時のロック/属性問題回避）。
+    # æ—¢å­˜ã® EXE ãŒã‚ã‚‹å ´åˆã¯å‰Šé™¤ã—ã¦ã‹ã‚‰ã‚³ãƒ”ãƒ¼ã™ã‚‹ï¼ˆä¸Šæ›¸ãæ™‚ã®ãƒ­ãƒƒã‚¯/å±žæ€§å•é¡Œå›žé¿ï¼‰ã€‚
     if (Test-Path $DestStandalone) {
         Remove-Item -Path $DestStandalone -Force
     }
@@ -312,10 +312,10 @@ if (Test-Path $SourceStandalone) {
 }
 
 # Copy CLAP files
-# CLAP は単一ファイル（.clap = DLL に拡張子を付けたもの）。Authenticode 署名は Step 3.5 で実施。
+# CLAP ã¯å˜ä¸€ãƒ•ã‚¡ã‚¤ãƒ«ï¼ˆ.clap = DLL ã«æ‹¡å¼µå­ã‚’ä»˜ã‘ãŸã‚‚ã®ï¼‰ã€‚Authenticode ç½²åã¯ Step 3.5 ã§å®Ÿæ–½ã€‚
 Write-Step "Copying CLAP files..."
-$SourceCLAP = "$BuildDir\plugin\ZeroLimit_artefacts\$Configuration\CLAP\ZeroLimit.clap"
-$DestCLAP = "$OutputDir\Windows\ZeroLimit.clap"
+$SourceCLAP = "$BuildDir\plugin\Himalaya_artefacts\$Configuration\CLAP\Himalaya.clap"
+$DestCLAP = "$OutputDir\Windows\Himalaya.clap"
 
 if (Test-Path $SourceCLAP) {
     if (Test-Path $DestCLAP) {
@@ -334,28 +334,28 @@ $AAXSigningStatus = "unsigned_developer"
 
 if ($BuildAAX) {
     Write-Step "Processing AAX plugin..."
-    $SourceAAX = "$BuildDir\plugin\ZeroLimit_artefacts\$Configuration\AAX\ZeroLimit.aaxplugin"
-    $DestAAX = "$OutputDir\Windows\ZeroLimit.aaxplugin"
+    $SourceAAX = "$BuildDir\plugin\Himalaya_artefacts\$Configuration\AAX\Himalaya.aaxplugin"
+    $DestAAX = "$OutputDir\Windows\Himalaya.aaxplugin"
     
     if (Test-Path $SourceAAX) {
-        # 既存の AAX バンドルがある場合は削除してからコピーする。
-        # これを行わないと、Copy-Item が入れ子の
-        # ZeroLimit.aaxplugin\ZeroLimit.aaxplugin\... を作ってしまう。
+        # æ—¢å­˜ã® AAX ãƒãƒ³ãƒ‰ãƒ«ãŒã‚ã‚‹å ´åˆã¯å‰Šé™¤ã—ã¦ã‹ã‚‰ã‚³ãƒ”ãƒ¼ã™ã‚‹ã€‚
+        # ã“ã‚Œã‚’è¡Œã‚ãªã„ã¨ã€Copy-Item ãŒå…¥ã‚Œå­ã®
+        # Himalaya.aaxplugin\Himalaya.aaxplugin\... ã‚’ä½œã£ã¦ã—ã¾ã†ã€‚
         if (Test-Path $DestAAX) {
             Remove-Item -Path $DestAAX -Recurse -Force
         }
-        # まず宛先ディレクトリを作成し、"中身のみ" をコピーする（フォルダごとでなく、ネスト回避）。
+        # ã¾ãšå®›å…ˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’ä½œæˆã—ã€"ä¸­èº«ã®ã¿" ã‚’ã‚³ãƒ”ãƒ¼ã™ã‚‹ï¼ˆãƒ•ã‚©ãƒ«ãƒ€ã”ã¨ã§ãªãã€ãƒã‚¹ãƒˆå›žé¿ï¼‰ã€‚
         New-Item -ItemType Directory -Force -Path $DestAAX | Out-Null
         Copy-Item -Path (Join-Path $SourceAAX '*') -Destination $DestAAX -Recurse -Force
         Write-Success "AAX copied successfully (unsigned)"
 
-        # AAX バンドルの中身が空でないかを検証（少なくとも本体バイナリが存在するか）
-        $AAXBinary = Join-Path $DestAAX "Contents\x64\ZeroLimit.aaxplugin"
+        # AAX ãƒãƒ³ãƒ‰ãƒ«ã®ä¸­èº«ãŒç©ºã§ãªã„ã‹ã‚’æ¤œè¨¼ï¼ˆå°‘ãªãã¨ã‚‚æœ¬ä½“ãƒã‚¤ãƒŠãƒªãŒå­˜åœ¨ã™ã‚‹ã‹ï¼‰
+        $AAXBinary = Join-Path $DestAAX "Contents\x64\Himalaya.aaxplugin"
         if (-not (Test-Path $AAXBinary)) {
             Write-Host "Warning: AAX bundle binary not found at: $AAXBinary" -ForegroundColor Yellow
             Write-Host "Attempting to re-copy from build artefacts..." -ForegroundColor Yellow
 
-            # 再コピー前に確実に削除
+            # å†ã‚³ãƒ”ãƒ¼å‰ã«ç¢ºå®Ÿã«å‰Šé™¤
             if (Test-Path $DestAAX) {
                 Remove-Item -Path $DestAAX -Recurse -Force
             }
@@ -464,13 +464,13 @@ if ($BuildAAX) {
 # binary externally would HashMismatch).
 Write-Header "Step 3.5: Signing Windows binaries (Authenticode)"
 $Vst3InnerPE = Join-Path $DestVST3 ("Contents\x86_64-win\" + [IO.Path]::GetFileNameWithoutExtension($DestVST3) + ".vst3")
-# CLAP は実体が DLL (PE) なので Authenticode 署名対象に含める。
+# CLAP ã¯å®Ÿä½“ãŒ DLL (PE) ãªã®ã§ Authenticode ç½²åå¯¾è±¡ã«å«ã‚ã‚‹ã€‚
 Invoke-AuthenticodeSign -Paths @($Vst3InnerPE, $DestStandalone, $DestCLAP) | Out-Null
 
 # Create README
 Write-Step "Creating documentation..."
 $ReadmeContent = @"
-ZeroLimit $Version - Windows Installation Guide
+Himalaya $Version - Windows Installation Guide
 ====================================================
 
 Important: Required Software
@@ -484,15 +484,15 @@ Installation Steps
 1. Close your DAW before proceeding.
 
 2. For VST3 Plugin:
-   Copy the entire ZeroLimit.vst3 folder to the following location:
+   Copy the entire Himalaya.vst3 folder to the following location:
    C:\Program Files\Common Files\VST3\
 
 3. For Standalone Application:
-   Copy ZeroLimit.exe to any preferred location, for example:
-   C:\Program Files\ZeroLimit\ or your Desktop.
+   Copy Himalaya.exe to any preferred location, for example:
+   C:\Program Files\Himalaya\ or your Desktop.
 
 4. For CLAP Plugin:
-   Copy ZeroLimit.clap to the following location:
+   Copy Himalaya.clap to the following location:
    C:\Program Files\Common Files\CLAP\
 
 "@
@@ -501,7 +501,7 @@ if ($BuildAAX) {
     $ReadmeContent += @"
 
 5. For AAX Plugin (Pro Tools):
-   Copy the entire ZeroLimit.aaxplugin folder to the following location:
+   Copy the entire Himalaya.aaxplugin folder to the following location:
    C:\Program Files\Common Files\Avid\Audio\Plug-Ins\
 
 "@
@@ -528,7 +528,7 @@ if ($BuildAAX) {
 }
 
 $VersionInfo = @{
-    name = "ZeroLimit"
+    name = "Himalaya"
     version = $Version
     build_date = $BuildDate
     platform = "Windows"
@@ -563,7 +563,7 @@ if (Test-Path $InnoSetupPath) {
         
         if ($LASTEXITCODE -eq 0) {
             Write-Success "Installer created successfully"
-            $InstallerPath = "$OutputDir\ZeroLimit_${Version}_Windows_Setup.exe"
+            $InstallerPath = "$OutputDir\Himalaya_${Version}_Windows_Setup.exe"
             Invoke-AuthenticodeSign -Paths @($InstallerPath) | Out-Null
             if (Test-Path $InstallerPath) {
                 $InstallerInfo = Get-Item $InstallerPath
@@ -584,9 +584,9 @@ if (Test-Path $InnoSetupPath) {
 # Create ZIP archive (as backup or alternative distribution)
 Write-Step "Creating ZIP archive..."
 if ($BuildAAX) {
-    $ZipName = "ZeroLimit_${Version}_Windows_VST3_AAX_CLAP_Standalone.zip"
+    $ZipName = "Himalaya_${Version}_Windows_VST3_AAX_CLAP_Standalone.zip"
 } else {
-    $ZipName = "ZeroLimit_${Version}_Windows_VST3_CLAP_Standalone.zip"
+    $ZipName = "Himalaya_${Version}_Windows_VST3_CLAP_Standalone.zip"
 }
 $ZipPath = "$OutputDir\$ZipName"
 
@@ -632,30 +632,30 @@ if ($BuildAAX) {
     }
 }
 Write-Host "The package includes:" -ForegroundColor Cyan
-Write-Host "[✓] ZeroLimit.vst3 (with embedded WebUI)" -ForegroundColor Green
-Write-Host "[✓] ZeroLimit.exe (Standalone application)" -ForegroundColor Green
-Write-Host "[✓] ZeroLimit.clap (CLAP plugin)" -ForegroundColor Green
+Write-Host "[âœ“] Himalaya.vst3 (with embedded WebUI)" -ForegroundColor Green
+Write-Host "[âœ“] Himalaya.exe (Standalone application)" -ForegroundColor Green
+Write-Host "[âœ“] Himalaya.clap (CLAP plugin)" -ForegroundColor Green
 if ($BuildAAX) {
-    Write-Host "[✓] ZeroLimit.aaxplugin ($AAXSigningStatusSummary)" -ForegroundColor Green
+    Write-Host "[âœ“] Himalaya.aaxplugin ($AAXSigningStatusSummary)" -ForegroundColor Green
 }
-Write-Host "[✓] Installation instructions" -ForegroundColor Green
-Write-Host "[✓] Version information" -ForegroundColor Green
+Write-Host "[âœ“] Installation instructions" -ForegroundColor Green
+Write-Host "[âœ“] Version information" -ForegroundColor Green
 Write-Host ""
 Write-Host "Distribution checklist:" -ForegroundColor Cyan
-Write-Host "[✓] WebUI built and embedded" -ForegroundColor Green
+Write-Host "[âœ“] WebUI built and embedded" -ForegroundColor Green
 if ($BuildAAX) {
-    Write-Host "[✓] VST3, Standalone, CLAP, and AAX compiled in $Configuration mode" -ForegroundColor Green
+    Write-Host "[âœ“] VST3, Standalone, CLAP, and AAX compiled in $Configuration mode" -ForegroundColor Green
 } else {
-    Write-Host "[✓] VST3, Standalone, and CLAP compiled in $Configuration mode" -ForegroundColor Green
+    Write-Host "[âœ“] VST3, Standalone, and CLAP compiled in $Configuration mode" -ForegroundColor Green
 }
-if (Test-Path "$OutputDir\ZeroLimit_${Version}_Windows_Setup.exe") {
-    Write-Host "[✓] Installer created with Inno Setup" -ForegroundColor Green
+if (Test-Path "$OutputDir\Himalaya_${Version}_Windows_Setup.exe") {
+    Write-Host "[âœ“] Installer created with Inno Setup" -ForegroundColor Green
 }
-Write-Host "[✓] Installation guide included" -ForegroundColor Green
-Write-Host "[✓] Version info included" -ForegroundColor Green
+Write-Host "[âœ“] Installation guide included" -ForegroundColor Green
+Write-Host "[âœ“] Version info included" -ForegroundColor Green
 if ($BuildAAX) {
     if ($AAXSignedSuccessfully) {
-        Write-Host "[✓] AAX plugin signed with PACE Eden tools" -ForegroundColor Green
+        Write-Host "[âœ“] AAX plugin signed with PACE Eden tools" -ForegroundColor Green
     } else {
         Write-Host "[!] AAX plugin NOT signed ($AAXSigningStatusSummary)" -ForegroundColor Yellow
     }

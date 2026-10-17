@@ -522,24 +522,54 @@ function App() {
             : { display: 'contents' }
           }
         >
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 1, py: 0.5 }}>
-          <Typography
-            variant='body2'
-            component='div'
-            sx={{ flexGrow: 1, color: 'primary.main', fontWeight: 600, cursor: 'pointer' }}
-            onClick={openLicenseDialog}
-            title='Licenses'
-          >
-            ZeroLimit
-          </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', px: 1.5, pt: 1, pb: 0.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5 }}>
+            <Typography
+              variant='h6'
+              component='div'
+              sx={{
+                color: '#00d2ff',
+                fontWeight: 800,
+                fontSize: '1.2rem',
+                letterSpacing: '1.5px',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                textShadow: '0 0 16px rgba(0, 210, 255, 0.4)',
+              }}
+              onClick={openLicenseDialog}
+              title='About Himalaya'
+            >
+              HIMALAYA
+            </Typography>
+            <Typography
+              variant='caption'
+              sx={{
+                color: '#64748b',
+                fontSize: '0.65rem',
+                fontWeight: 600,
+                letterSpacing: '0.8px',
+                textTransform: 'uppercase',
+                display: { xs: 'none', sm: 'inline-block' },
+              }}
+            >
+              ZERO-LATENCY MULTIBAND LIMITER
+            </Typography>
+          </Box>
           <Typography
             variant='caption'
-            color='text.secondary'
+            sx={{
+              color: '#94a3b8',
+              fontWeight: 600,
+              fontSize: '0.72rem',
+              letterSpacing: '0.6px',
+              cursor: 'pointer',
+              transition: 'color 0.15s ease',
+              '&:hover': { color: '#00d2ff' },
+            }}
             onClick={openLicenseDialog}
-            sx={{ cursor: 'pointer' }}
-            title='Licenses'
+            title='About Himalaya'
           >
-            by Jun Murakami
+            by scobru
           </Typography>
         </Box>
 
